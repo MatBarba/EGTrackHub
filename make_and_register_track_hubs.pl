@@ -11,6 +11,8 @@
 
 use strict ;
 use warnings;
+use autodie;
+use File::Path qw(remove_tree);
 
 use Getopt::Long;
 use ArrayExpress;
@@ -58,33 +60,32 @@ my $plant_names_href_EG = EG::get_plant_names;
 
 my %study_ids_from_AE = %{ArrayExpress::get_completed_study_ids_for_plants($plant_names_href_EG)};
 
-open(IN, $file_location_of_study_ids_or_species) or die "Can't open $file_location_of_study_ids_or_species.\n";
+open(my $locations_fh, $file_location_of_study_ids_or_species);
 
-if($study_ids_file_content){
-
-  while(<IN>){
-    chomp;
-    if($study_ids_from_AE{$_}){  # i have to check if this study id is still in AE , if it's not now in AE, I leave this TH the way it was without updating it. I t will be updated when I run the pipeline with the update option
-      $study_ids{$_}=1;
+if ($study_ids_file_content){
+  while(my $line = readline $locations_fh){
+    chomp $line;
+    if($study_ids_from_AE{$line}){  # i have to check if this study id is still in AE , if it's not now in AE, I leave this TH the way it was without updating it. I t will be updated when I run the pipeline with the update option
+      $study_ids{$line} = 1;
     }else{
-      push(@obsolete_studies,$_);
+      push @obsolete_studies, $line;
     }
   }
-  close (IN);
+  close $locations_fh;
 
 }else{  # the user will have species names in the text file
 
   my %eg_species_names= %{EG::get_plant_names()};
 
-  while(<IN>){
-    chomp;
-    if($eg_species_names{$_}){
-      $species_names{$_}=1;
+  while(my $line = readline $locations_fh){
+    chomp $line;
+    if($eg_species_names{$line}){
+      $species_names{$line} = 1;
     }else{
-      die "\nPlant name ".$_." is not part of the EnsemblGenomes plant names. Please run again the pipeline using these names inside the file $file_location_of_study_ids_or_species : \n\n". join("\n",keys %eg_species_names)."\n\n";
+      die "\nPlant name ".$line." is not part of the EnsemblGenomes plant names. Please run again the pipeline using these names inside the file $file_location_of_study_ids_or_species : \n\n". join("\n",keys %eg_species_names)."\n\n";
     }
   }
-  close (IN);
+  close $locations_fh;
 
   foreach my $species_name (keys %species_names){
 
@@ -113,8 +114,7 @@ if($study_ids_file_content){
 
     print "\nThis directory: $server_dir_full_path does not exist, I will make it now.\n";
 
-    Helper::run_system_command("mkdir $server_dir_full_path")
-      or die "I cannot make dir $server_dir_full_path in script: ".__FILE__." line: ".__LINE__."\n";
+    mkdir $server_dir_full_path;
   }
 
   my $plant_names_AE_response_href = ArrayExpress::get_plant_names_AE_API();
@@ -191,20 +191,13 @@ sub make_register_THs_with_logging{
 
     $line_counter++;
     print "$line_counter.\tcreating track hub in the server for study $study_id\t"; 
-
-    my $ls_output = `ls $server_dir_full_path`  ;
-    my $flag_new_or_update;
-
-    if($ls_output =~/$study_id/){ # i check if the directory of the study exists already
-   
+    
+    # check if the directory of the study exists already
+    my $study_dir = "$server_dir_full_path/$study_id";
+    if (-d $study_dir){
       print " (update) "; # if it already exists
       $flag_new_or_update = "update";
-      my $method_return= Helper::run_system_command("rm -r $server_dir_full_path/$study_id");
-      if (!$method_return){ # returns 1 if successfully deleted or 0 if not, !($method_return is like $method_return=0)
-        print STDERR "I cannot rm dir $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
-        print STDERR "This study $study_id will be skipped";
-        next;
-      }
+      remove_tree $study_dir;
     }else{
       $flag_new_or_update = "new";
       print " (new) ";
@@ -225,8 +218,7 @@ sub make_register_THs_with_logging{
         $registry_obj->delete_track_hub($study_id);
       }
 
-      Helper::run_system_command("rm -r $server_dir_full_path/$study_id")      
-        or die "ERROR: failed to remove dir $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
+      remove_tree "$server_dir_full_path/$study_id";
 
       $line_counter --;
 
@@ -251,8 +243,7 @@ sub make_register_THs_with_logging{
       $return_string = $output;
 
       if($output !~ /is Registered/){# if something went wrong with the registration, i will not make a track hub out of this study
-        #Helper::run_system_command("rm -r $server_dir_full_path/$study_id")
-         # or die "ERROR: failed to remove dir $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
+        #remove_tree "$server_dir_full_path/$study_id"
 
         $line_counter --;
         $return_string = $return_string . "\t..Something went wrong with the Registration process -- this study will be skipped..\n";

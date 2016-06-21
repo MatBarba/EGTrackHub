@@ -2,6 +2,7 @@ package TrackHubCreation;
 
 use strict ;
 use warnings;
+use autodie;
 
 use Getopt::Long; # to use the options when calling the script
 use POSIX qw(strftime); # to get GMT time stamp
@@ -10,7 +11,6 @@ use EG;
 use AEStudy;
 use SubTrack;
 use SuperTrack;
-use Helper;
 
 my $meta_keys_aref = ENA::get_all_sample_keys(); # array ref that has all the keys for the ENA warehouse metadata
 
@@ -72,16 +72,28 @@ sub make_track_hub{ # main method, creates the track hub of a study in the folde
   return "..Done\n";
 }
 
+sub touch_file {
+  my @files = @_;
+  
+  for my $path (@files) {
+    if (-f $path) {
+      open my $fileh, ">$path";
+      close $fileh;
+    }
+    else {
+      utime(undef, undef, $path) or carp "Can't touch this: $path";
+    }
+  }
+  return;
+}
 
 sub make_study_dir{
-
   my $self= shift;
   my ($server_dir_full_path,$study_obj) = @_;
 
   my $study_id = $study_obj->id;  
 
-  Helper::run_system_command("mkdir $server_dir_full_path" . '/' . $study_id)
-    or die "I cannot make dir $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
+  mkdir "$server_dir_full_path/$study_id";
 }
 
 sub make_assemblies_dirs{
@@ -92,9 +104,7 @@ sub make_assemblies_dirs{
   
   # For every assembly I make a directory for the study -track hub
   foreach my $assembly_name (keys %{$study_obj->get_assembly_names}){
-
-    Helper::run_system_command("mkdir $server_dir_full_path/$study_id/$assembly_name")
-      or die "I cannot make directories of assemblies in $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
+    mkdir "$server_dir_full_path/$study_id/$assembly_name";
   }
 }
 
@@ -106,10 +116,9 @@ sub make_hubtxt_file{
   my $study_id = $study_obj->id;
   my $hub_txt_file= "$server_dir_full_path/$study_id/hub.txt";
 
-  Helper::run_system_command("touch $hub_txt_file")
-    or die "Could not create hub.txt file in the $server_dir_full_path location\n";
+  touch_file($hub_txt_file);
   
-  open(my $fh, '>', $hub_txt_file) or die "Could not open file '$hub_txt_file' $! in ".__FILE__." line: ".__LINE__."\n";
+  open my $fh, '>', $hub_txt_file;
 
   print $fh "hub $study_id\n";
 
@@ -135,6 +144,7 @@ sub make_hubtxt_file{
     print $fh "email helpdesk\@ensemblgenomes.org\n";
 
   }
+  close $fh;
 
   return "ok";
 }
@@ -149,17 +159,16 @@ sub make_genomestxt_file{
 
   my $genomes_txt_file = "$server_dir_full_path/$study_id/genomes.txt";
 
-  Helper::run_system_command("touch $genomes_txt_file")
-    or die "Could not create genomes.txt file in the $server_dir_full_path location\n";
+  touch_file($genomes_txt_file);
 
-  open(my $fh2, '>', $genomes_txt_file) or die "Could not open file '$genomes_txt_file' $!\n";
+  open(my $fh2, '>', $genomes_txt_file);
 
   foreach my $assembly_name (keys %{$assembly_names_href}) {
 
     print $fh2 "genome ".$assembly_name."\n"; 
     print $fh2 "trackDb ".$assembly_name."/trackDb.txt"."\n\n"; 
   }
-
+  close $fh2;
 }
 
 sub make_trackDbtxt_file{
@@ -171,11 +180,9 @@ sub make_trackDbtxt_file{
   my $study_id =$study_obj->id;
   my $trackDb_txt_file="$ftp_dir_full_path/$study_id/$assembly_name/trackDb.txt";
 
-  Helper::run_system_command("touch $trackDb_txt_file")
-    or die "Could not create trackDb.txt file in the $ftp_dir_full_path/$study_id/$assembly_name location\n";       
+  touch_file($trackDb_txt_file);
 
-  open(my $fh, '>', $trackDb_txt_file)
-    or die "Error in ".__FILE__." line ".__LINE__." Could not open file '$trackDb_txt_file' $!";
+  open my $fh, '>', $trackDb_txt_file;
 
   my @sample_ids = keys %{$study_obj->get_sample_ids} ;
   if(scalar @sample_ids ==0){
@@ -217,9 +224,9 @@ sub make_trackDbtxt_file{
 
       $track_obj->print_track_stanza($fh);
 
-    } 
+    }
   }
-
+  close $fh;
   return 1;
 } 
 

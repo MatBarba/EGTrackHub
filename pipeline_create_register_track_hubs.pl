@@ -11,6 +11,8 @@
 
 use strict ;
 use warnings;
+use autodie;
+use File::Path qw(remove_tree);
 
 use Getopt::Long;
 use DateTime;   
@@ -18,7 +20,6 @@ use Time::HiRes;
 use Time::Piece;
 use Registry;
 use TrackHubCreation;
-use Helper;
 use Data::Dumper;
 use ENA;
 
@@ -57,8 +58,7 @@ my $start_run = time();
 
     print "\nThis directory: $server_dir_full_path does not exist, I will make it now.\n";
 
-    Helper::run_system_command("mkdir $server_dir_full_path")
-      or die "I cannot make dir $server_dir_full_path in script: ".__FILE__." line: ".__LINE__."\n";
+    mkdir $server_dir_full_path;
   }
 
   my $unsuccessful_studies_href;
@@ -194,15 +194,8 @@ sub update_common_studies{
     my $old_study_counter = $study_counter;
 
     # first I remove it from the server, to re-make it
-    my $ls_output = `ls $server_dir_full_path`  ;
-
-    if($ls_output =~/$study_id/){ # i check if the directory was created
-
-      my $method_return= Helper::run_system_command("rm -r $server_dir_full_path/$study_id");
-      if (!$method_return){ # returns 1 if successfully deleted or 0 if not, !($method_return is like $method_return=0)
-        print STDERR "I cannot rm dir $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
-      }
-    }
+    my $study_dir = "$server_dir_full_path/$study_id";
+    remove_tree $study_dir if -d $study_dir;
     
     my $date_registry_last = localtime($registry_obj->get_Registry_hub_last_update($study_id))->strftime('%F %T');
     my $reason_of_unsuccessful_study;
@@ -255,16 +248,10 @@ sub create_new_studies_in_incremental_update{
   my $study_counter = 0;
 
   foreach my $study_id (@$new_study_ids_aref) {
-
-    my $ls_output = `ls $server_dir_full_path`  ;
-    if($ls_output =~/$study_id/){ # i check if the directory was created
-
-      my $method_return= Helper::run_system_command("rm -r $server_dir_full_path/$study_id");
-      if (!$method_return){ # returns 1 if successfully deleted or 0 if not, !($method_return is like $method_return=0)
-        print STDERR "I cannot rm dir $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
-        print STDERR "This study $study_id will be skipped";
-        next;
-      }
+    # Remove study dir first if it already exists
+    my $study_dir = "$server_dir_full_path/$study_id";
+    if(-d $study_dir){
+      remove_tree $study_dir;
     }
     my $study_obj = AEStudy->new($study_id,$plant_names_AE_response_href);
 
@@ -313,10 +300,7 @@ sub remove_obsolete_studies {
 
       $registry_obj->delete_track_hub($track_hub_id) ; # it's an obsolete study- it needs deletion
 
-      my $method_return= Helper::run_system_command("rm -r $server_dir_full_path/$track_hub_id");
-      if (!$method_return){ # returns 1 if successfully deleted or 0 if not, !($method_return is like $method_return=0)
-        print STDERR "Could not remove obsolete track hub $track_hub_id in location $server_dir_full_path\n";
-      }
+      remove_tree "$server_dir_full_path/$track_hub_id";
     }
   }else{
 
@@ -515,27 +499,7 @@ sub delete_registered_th_and_remove_th_from_server{  # called only when option i
   }
 
   print "\n ******** Deleting everything in directory $server_dir_full_path\n\n";
-
-  my ($successfully_ran_method,$ls_output) = Helper::run_system_command_with_output("ls $server_dir_full_path");
-
-  if($successfully_ran_method ==0) { 
-
-    die "I cannot see contents of $server_dir_full_path(ls failed) in script: ".__FILE__." line: ".__LINE__."\n";
-  }
-
-  if($successfully_ran_method ==1 and (!($ls_output))){  # if dir is empty 
-
-    print "Directory $server_dir_full_path is empty - No need for deletion\n";
-  }
-
-  if($successfully_ran_method ==1 and ($ls_output)){ # directory is not empty, I will delete all its contents
-
-    Helper::run_system_command("rm -r $server_dir_full_path/*")   # removing the track hub files in the server/dir
-      or die "ERROR: failed to remove contents of dir $server_dir_full_path in script: ".__FILE__." line: ".__LINE__."\n";
-
-    print "Successfully deleted all content of $server_dir_full_path\n";    
-
-  }
+  remove_tree "$server_dir_full_path", { keep_root => 1 };   # removing the track hub files in the server/dir
   $| = 1; 
 }
 
@@ -631,9 +595,11 @@ sub give_number_of_dirs_in_ftp {
 
   my $ftp_location = shift;
   
-  my @files = `ls $ftp_location` ;
+  opendir my $dirh, ls $ftp_location;
+  my @files = readdir $dirh;
+  close $dirh;
   
-  return  scalar @files;
+  return scalar @files;
 }
 
 sub hash_keys_are_equal{
@@ -734,8 +700,7 @@ sub make_and_register_track_hub{
     print STDERR "Track hub of $study_id could not be made in the server - Folder $study_id will be deleted\n\n" ;
     print "\t..Skipping registration part\n";
 
-    Helper::run_system_command("rm -r $server_dir_full_path/$study_id")      
-      or die "ERROR: failed to remove dir $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
+    remove_tree "$server_dir_full_path/$study_id";
 
     $line_counter --;
 
@@ -761,8 +726,7 @@ sub make_and_register_track_hub{
     $return_string = $output;
 
     if($output !~ /is Registered/){# if something went wrong with the registration, i will not make a track hub out of this study
-      Helper::run_system_command("rm -r $server_dir_full_path/$study_id")
-        or die "ERROR: failed to remove dir $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
+      remove_tree "$server_dir_full_path/$study_id";
 
       $line_counter --;
       $return_string = $return_string . "\t..Something went wrong with the Registration process -- this study will be skipped..\n";
