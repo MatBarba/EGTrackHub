@@ -9,13 +9,10 @@ use Capture::Tiny ':all';
 # checks if the module can load
 # -----
 
-#test1
+# test1
 use_ok(EG);  # it checks if it can use the module correctly
 
-#test2
-use_ok(JsonResponse);  # it checks if it can use the module correctly
-
-#test3
+# test2
 my $ens_genomes_plants_call = "http://rest.ensemblgenomes.org/info/genomes/division/EnsemblPlants?content-type=application/json";
 my $json_response_aref = JsonResponse::get_Json_response($ens_genomes_plants_call);  
 
@@ -31,23 +28,23 @@ foreach my $hash_ref (@$json_response_aref){
 # test get_plant_names method
 # -----
 
-#test4
-my $plant_names_href=EG::get_plant_names();
+#test3
+my $plant_names_href = EG::get_plant_names();
 ok(exists $plant_names_href->{arabidopsis_thaliana} ,"Arabidopsis_thaliana exists in the REST response");
 
 # -----
 # test get_assembly_name_using_species_name method
 # -----
 
-#test5
+#test4
 my $assembly_name = EG::get_assembly_name_using_species_name("triticum_aestivum");
 is($assembly_name,"IWGSC1+popseq", "Triticum aestivum has the exprected assembly name");
 
-#test6
+#test5
 $assembly_name = EG::get_assembly_name_using_species_name("arabidopsis_thaliana");
 is($assembly_name,"TAIR10", "Arabidopsis thaliana has the exprected assembly name");
 
-#test7
+#test6
 my ($stdout, $stderr, $assembly_name_unknown) = capture {
   EG::get_assembly_name_using_species_name("arabidopsis_thalian");
 };

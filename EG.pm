@@ -22,15 +22,7 @@ sub get_plant_names{
     my @array_response_plants_assemblies; 
 
     my $json_response = JsonResponse::get_Json_response($ens_genomes_plants_call);  
-
-    if(!$json_response){ # if response is 0
-
-      die "Could not get Ensembl plant names from EG rest call: $ens_genomes_plants_call\n";
-
-    }else{
-
-      @array_response_plants_assemblies = @{$json_response};
-    }
+    @array_response_plants_assemblies = @{$json_response};
 
 # response:
 #[{"base_count":"479985347","is_reference":null,"division":"EnsemblPlants","has_peptide_compara":"1","dbname":"physcomitrella_patens_core_28_81_11","genebuild":"2011-03-JGI","assembly_level":"scaffold","serotype":null,
