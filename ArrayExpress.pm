@@ -64,7 +64,6 @@ sub get_completed_study_ids_for_plants
 
     my $n = 0;
     foreach my $plant_name ( keys %{$plant_names_href_EG} ) {
-        print STDERR "Load $n\t$plant_name\n";
         last if (defined $limit and $n > $limit);
         my $biorep_url = $get_runs_by_organism_endpoint . $plant_name;
         my $biorep_stanza_json = JsonResponse::get_Json_response($biorep_url);
