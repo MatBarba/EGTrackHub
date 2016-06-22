@@ -44,7 +44,10 @@ GetOptions(
 
 );
 
-if(!$species_file_content and !$study_ids_file_content){
+if (not defined $file_location_of_study_ids_or_species) {
+  die "Need -file_location_of_study_ids_or_species";
+}
+if(not defined $species_file_content and not defined $study_ids_file_content) {
   die "\nPlease give flag \"-file_content_species_names\" or \"-file_content_study_ids\" , depending on the content of the file \"$file_location_of_study_ids_or_species\" (does it have study ids or species names?)\n\n";
 }
 
@@ -137,7 +140,7 @@ if ($study_ids_file_content){
 
   foreach my $reason_of_failure (keys %$unsuccessful_studies_href){  # hash looks like; $unsuccessful_studies{"Missing all Samples in AE REST API"}{$study_id}= 1;
 
-    foreach my $failed_study_id (keys $unsuccessful_studies_href->{$reason_of_failure}){
+    foreach my $failed_study_id (keys %{ $unsuccessful_studies_href->{$reason_of_failure} }){
 
       $counter ++;
       print "$counter. $failed_study_id\t".$reason_of_failure."\n";
@@ -194,6 +197,7 @@ sub make_register_THs_with_logging{
     
     # check if the directory of the study exists already
     my $study_dir = "$server_dir_full_path/$study_id";
+    my $flag_new_or_update;
     if (-d $study_dir){
       print " (update) "; # if it already exists
       $flag_new_or_update = "update";
