@@ -5,43 +5,46 @@ use warnings;
 
 use HTTP::Tiny;
 use JSON;
+use Carp;
+$Carp::Verbose = 1; # Stack trace when carp/croak
 
-my $http = HTTP::Tiny->new();
-
-sub get_Json_response { # it returns the json response given the endpoint as param, it returns an array reference that contains hash references . If response not successful it returns 0
+# On success: return the json content in an array ref of hash ref
+# On failure: die
+# example url: "http://www.ebi.ac.uk/fg/rnaseq/api/json/70/getRunsByStudy/SRP033494";
+sub get_Json_response {
+  my ($url, $num_attempts) = @_;
+  $num_attempts //= 3;
   
-  my $url = shift; # example: "http://www.ebi.ac.uk/fg/rnaseq/api/json/70/getRunsByStudy/SRP033494";
+  my $http = HTTP::Tiny->new();
 
-  my $response = $http->get($url);
-  my $json;
-  my $json_aref; # array ref with hash references with the json stanzas
+  # Try several ($num_attempt) times
+  my $response;
+  ATTEMPT: for my $attempt (1..$num_attempts) {
+    $response = $http->get($url);
 
-  if (!$response->{success}) { # if it didn't succeed , retry 10 times
-
-    for(my $i=1; $i<=10; $i++) {
+    unless ($response->{success} and $response->{success} == 1) {
       sleep 5;
-      $response = $http->get($url);
-
-      next unless ($response->{success} and $response->{success} ==1);
-      $json=$response->{content};     
-      $json_aref = decode_json($json); # it returns an array reference with hash references
-      return ($json_aref);      
+      next ATTEMPT;
     }
-
-    my ($status, $reason) = ($response->{status}, $response->{reason}); #LWP perl library for dealing with http
-    print STDERR "ERROR in: ".__FILE__." line: ".__LINE__ ." Failed for $url! Status code: ${status}. Reason: ${reason}\n";  # if response is successful I get status "200", reason "OK"
-    return 0;
-
+    
+    # Success: decode json and return it
+    my $json = $response->{content};
+    my $json_aref = decode_json($json);
+    return ($json_aref);      
   }
 
-  elsif($response->{success} ==1) { # if the response is successful then I get 1 # checks the url to be correct and server to give response
-
-    $json=$response->{content};     
-    $json_aref = decode_json($json); # it returns an array reference with hash references (JSON module)
-
-    return ($json_aref);
-  }
+  # All attempts failed: die
+  my ($status, $reason) = ($response->{status}, $response->{reason});
+  croak sprintf(
+    "Failed to load url '%s'! Status code: '%s'. Reason: '%s'",
+    $url,
+    $response->{status},
+    $response->{reason}
+  );
+  # Note: if the response is successful I get status "200", reason "OK"
+  
+  return;
 }
 
-
 1;
+

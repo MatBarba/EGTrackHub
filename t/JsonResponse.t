@@ -1,10 +1,10 @@
 
 use Test::More;
-use Test::JSON
-  ; # had to install also from cpan the module JSON::Any which is used in Test::Json
+use Test::JSON;
+use Test::Exception;
 use HTTP::Tiny;
 use Test::HTTP::Response;
-use Capture::Tiny ':all';
+use Try::Tiny;
 
 # -----
 # checks if the module can load
@@ -28,9 +28,6 @@ is_valid_json( $json, 'Json from the e!genomes plant call is well formed' );
 my $json_response_aref = JsonResponse::get_Json_response($url);
 isa_ok( $json_response_aref, "ARRAY", "JSON response" );
 
-use Data::Dumper;
-print STDERR Dumper $json_response_aref;
-
 #test4
 foreach my $stanza_href (@$json_response_aref) {
     for my $key (qw{ORGANISM STATUS CRAM_LOCATION}) {
@@ -41,17 +38,10 @@ foreach my $stanza_href (@$json_response_aref) {
 
 #test5
 my $wrong_url = "http://plantain:3000/json/70/getLibrariesByStudyId/SRP033494";
-my ( $stdout, $stderr, $wrong_url_response ) = capture {
-    JsonResponse::get_Json_response($wrong_url);
-};
-
-ok(
-    $stderr =~ /ERROR in/,
-    'HTTP response with a wrong URL returns an expected error'
-);
-
-# test6
-is( $wrong_url_response, 0, "REST call with wrong URL returns 0" );
+dies_ok {
+  # 1 attempt for wrong url
+  $json = JsonResponse::get_Json_response($wrong_url, 1);
+} "Wrong url: die";
 
 done_testing();
 
