@@ -58,17 +58,17 @@ sub make_runs_tuple_plants_of_study {
 # a response stanza (the response is usually more than 1 stanza, 1 study has many bioreps, each stanza is a biorep) of this call:  http://www.ebi.ac.uk/fg/rnaseq/api/json/70/getRunsByStudy/SRP033494
 #[{"STUDY_ID":"SRP033494","SAMPLE_IDS":"SAMN02434874","BIOREP_ID":"SRR1042754","RUN_IDS":"SRR1042754","ORGANISM":"arabidopsis_thaliana","REFERENCE_ORGANISM":"arabidopsis_thaliana","STATUS":"Complete",
 #"ASSEMBLY_USED":"TAIR10","ENA_LAST_UPDATED":"Fri Jun 19 2015 18:11:03","LAST_PROCESSED_DATE":"Sun Nov 15 2015 00:31:20",
-#"FTP_LOCATION":"ftp://ftp.ebi.ac.uk/pub/databases/arrayexpress/data/atlas/rnaseq/SRR104/004/SRR1042754/SRR1042754.cram"},
+#"CRAM_LOCATION":"ftp://ftp.ebi.ac.uk/pub/databases/arrayexpress/data/atlas/rnaseq/SRR104/004/SRR1042754/SRR1042754.cram"},
 
 # or with merges of CRAMs
 
 #[{"STUDY_ID":"SRP021098","SAMPLE_IDS":"SAMN02799120","BIOREP_ID":"E-MTAB-4045.biorep54","RUN_IDS":"SRR1298603,SRR1298604","ORGANISM":"glycine_max","REFERENCE_ORGANISM":"glycine_max",
 #"STATUS":"Complete","ASSEMBLY_USED":"V1.0","ENA_LAST_UPDATED":"Fri Jun 19 2015 18:53:48","LAST_PROCESSED_DATE":"Mon Jan 25 2016 16:46:04",
-#"FTP_LOCATION":"ftp://ftp.ebi.ac.uk/pub/databases/arrayexpress/data/atlas/rnaseq/aggregated_techreps/E-MTAB-4045/E-MTAB-4045.biorep54.cram","MAPPING_QUALITY":77},
+#"CRAM_LOCATION":"ftp://ftp.ebi.ac.uk/pub/databases/arrayexpress/data/atlas/rnaseq/aggregated_techreps/E-MTAB-4045/E-MTAB-4045.biorep54.cram","MAPPING_QUALITY":77},
 
 # there are cases of null sample ids: (I want to skip those track hubs)
 #[{"STUDY_ID":"DRP002805","SAMPLE_IDS":null,"BIOREP_ID":"DRR048597","RUN_IDS":"DRR048597","ORGANISM":"brachypodium_distachyon","REFERENCE_ORGANISM":"brachypodium_distachyon","STATUS":"Complete",
-#"ASSEMBLY_USED":"v1.0","ENA_LAST_UPDATED":"Fri Mar 11 2016 01:37:14","LAST_PROCESSED_DATE":"Sat Mar 12 2016 22:48:54","FTP_LOCATION":"ftp://ftp.ebi.ac.uk/pub/databases/arrayexpress/data/atlas/rnaseq/DRR048/DRR048597/DRR048597.cram","MAPPING_QUALITY":88},
+#"ASSEMBLY_USED":"v1.0","ENA_LAST_UPDATED":"Fri Mar 11 2016 01:37:14","LAST_PROCESSED_DATE":"Sat Mar 12 2016 22:48:54","CRAM_LOCATION":"ftp://ftp.ebi.ac.uk/pub/databases/arrayexpress/data/atlas/rnaseq/DRR048/DRR048597/DRR048597.cram","MAPPING_QUALITY":88},
 
   foreach my $run_stanza (@runs_json){
     
