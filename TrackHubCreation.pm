@@ -76,13 +76,11 @@ sub touch_file {
   my @files = @_;
   
   for my $path (@files) {
-    if (-f $path) {
+    if (not -f $path) {
       open my $fileh, ">$path";
       close $fileh;
     }
-    else {
-      utime(undef, undef, $path) or carp "Can't touch this: $path";
-    }
+    utime(undef, undef, $path) or carp "Can't touch this: $path ($!)";
   }
   return;
 }
@@ -127,6 +125,7 @@ sub make_hubtxt_file{
   my $ena_study_title = ENA::get_ENA_study_title($study_id);
 
   if ($ena_study_title eq "not yet in ENA"){
+    carp "Study is not yet in ENA: $study_id";
     return "not yet in ENA";
   }
   my $long_label;
@@ -139,11 +138,10 @@ sub make_hubtxt_file{
   }else{
 
     $long_label = "longLabel $ena_study_title ; <a href=\"http://www.ebi.ac.uk/ena/data/view/".$study_id."\">".$study_id."</a>"."\n";
-    print $fh $long_label;
-    print $fh "genomesFile genomes.txt\n";
-    print $fh "email helpdesk\@ensemblgenomes.org\n";
-
   }
+  print $fh $long_label;
+  print $fh "genomesFile genomes.txt\n";
+  print $fh "email helpdesk\@ensemblgenomes.org\n";
   close $fh;
 
   return "ok";
