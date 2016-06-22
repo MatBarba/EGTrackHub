@@ -2,8 +2,6 @@
 use Test::More;
 use Test::Exception;
 #use Devel::Cover;
-use Capture::Tiny ':all';
-use EG;
 
 # -----
 # checks if the module can load
@@ -12,9 +10,6 @@ use EG;
 
 #test1
 use_ok(ArrayExpress);  # it checks if it can use the module correctly
-
-#test2
-use_ok(JsonResponse);  # it checks if it can use the module correctly
 
 #test3
 use_ok(EG);  # it checks if it can use the module correctly
@@ -41,19 +36,13 @@ cmp_ok(scalar keys (%$plant_names_AE_href) , '<=', $number_of_plants_in_Eg ,"Num
 cmp_ok(scalar keys (%$plant_names_AE_href), 'gt', 30 , "Number of plants completed by AE is more than 30");
 
 # -----
-# # test get_runs_json_for_study method
-# -----
-
-#this method is bacically calling JsonResponse::get_Json_response($url) method which is tested in the JsonResponse.t script
-
-
-# -----
 # # test get_completed_study_ids_for_plants method
 # -----
 
 #test8
-my $study_ids_href=ArrayExpress::get_completed_study_ids_for_plants($eg_plant_names_href);
-cmp_ok(scalar keys (%$study_ids_href), 'gt', 1000 , "Number of cram alignments completed by AE is more than 1000");
+# Limit to the first 10 alignments (too long otherwise)
+my $study_ids_href=ArrayExpress::get_completed_study_ids_for_plants($eg_plant_names_href, 3);
+cmp_ok(scalar keys (%$study_ids_href), 'gt', 0, "Several cram alignments are completed");
 
 # -----
 # # test get_study_ids_for_plant method
