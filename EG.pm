@@ -8,22 +8,29 @@ use warnings;
 use JsonResponse;
 
 my $ens_genomes_plants_call = "http://rest.ensemblgenomes.org/info/genomes/division/EnsemblPlants?content-type=application/json"; # to get all ensembl plants names currently
+my %plant_names;
+my %species_name_assembly_id_hash;
+my %species_name_assembly_name_hash;
+
+sub get_plant_names{
+  
+  if (not %plant_names) {
 
 #test server - new assemblies:
 #my $ens_genomes_plants_call = "http://test.rest.ensemblgenomes.org/info/genomes/division/EnsemblPlants?content-type=application/json";
 
-my @array_response_plants_assemblies; 
+    my @array_response_plants_assemblies; 
 
-my $json_response = JsonResponse::get_Json_response($ens_genomes_plants_call);  
+    my $json_response = JsonResponse::get_Json_response($ens_genomes_plants_call);  
 
-if(!$json_response){ # if response is 0
+    if(!$json_response){ # if response is 0
 
-  die "Could not get Ensembl plant names from EG rest call: $ens_genomes_plants_call\n";
+      die "Could not get Ensembl plant names from EG rest call: $ens_genomes_plants_call\n";
 
-}else{
+    }else{
 
-  @array_response_plants_assemblies = @{$json_response};
-}
+      @array_response_plants_assemblies = @{$json_response};
+    }
 
 # response:
 #[{"base_count":"479985347","is_reference":null,"division":"EnsemblPlants","has_peptide_compara":"1","dbname":"physcomitrella_patens_core_28_81_11","genebuild":"2011-03-JGI","assembly_level":"scaffold","serotype":null,
@@ -35,29 +42,23 @@ if(!$json_response){ # if response is 0
 #AMTR1.0	GCA_000471905.1
 #Theobroma_cacao_20110822	GCA_000403535.1
 
-my %plant_names;
-my %species_name_assembly_id_hash;
-my %species_name_assembly_name_hash;
 
+    foreach my $hash_ref (@array_response_plants_assemblies){
 
-foreach my $hash_ref (@array_response_plants_assemblies){
+      $plant_names{$hash_ref->{"species"}} =1 ;
 
-  $plant_names{$hash_ref->{"species"}} =1 ;
+      $species_name_assembly_name_hash {$hash_ref->{"species"} } =  $hash_ref->{"assembly_name"};
 
-  $species_name_assembly_name_hash {$hash_ref->{"species"} } =  $hash_ref->{"assembly_name"};
+      if(! $hash_ref->{"assembly_id"}){# for triticum_aestivum that is without assembly id , I store 0000, this is specifically for the THR to work
 
-  if(! $hash_ref->{"assembly_id"}){# for triticum_aestivum that is without assembly id , I store 0000, this is specifically for the THR to work
+        $species_name_assembly_id_hash{$hash_ref->{"species"}} = "0000" ;
 
-    $species_name_assembly_id_hash{$hash_ref->{"species"}} = "0000" ;
-                                                                     
-  }else{
-    $species_name_assembly_id_hash {$hash_ref->{"species"} } =  $hash_ref->{"assembly_id"};
+      }else{
+        $species_name_assembly_id_hash {$hash_ref->{"species"} } =  $hash_ref->{"assembly_id"};
+      }
+
+    }
   }
-
-}
-
-
-sub get_plant_names{
 
   return \%plant_names;
 }
