@@ -13,9 +13,7 @@ use DateTime::Format::Strptime;
 
 my $ua     = LWP::UserAgent->new;
 my $parser = XML::LibXML->new;
-
-my $all_cram_locations_href = get_hash_of_locations_of_cram_submissions();
-my $unique_cram_locations_href= get_last_updated_cram_file_location_hash ($all_cram_locations_href);
+my $unique_cram_locations_href;
 
 sub get_ENA_title {
     my ($id, $field_name) = @_;
@@ -336,8 +334,9 @@ sub get_hash_of_locations_of_cram_submissions{
 
 
 sub get_last_updated_cram_file_location_hash{
-  
-  my $location_hash = shift; # the hash would be like this: $location_hash{DRR008478"}{"2016-03-04"}="ftp.sra.ebi.ac.uk/vol1/ERZ270/ERZ270564/DRR008478.cram"
+   # the hash would be like this:
+   # $location_hash{DRR008478"}{"2016-03-04"} = "ftp.sra.ebi.ac.uk/vol1/ERZ270/ERZ270564/DRR008478.cram"
+  my $location_hash = shift;
   my %unique_cram_names_href;
   
   foreach my $cram_name (keys %$location_hash){
@@ -361,8 +360,10 @@ sub get_last_updated_cram_file_location_hash{
         $location_of_max_timestamp = $location_hash->{$cram_name}{$date}; 
       }
     }
-
-    $unique_cram_names_href{$cram_name}=$location_of_max_timestamp; #the hash would be like this: $unique_cram_names_href{DRR008478"}="ftp.sra.ebi.ac.uk/vol1/ERZ270/ERZ270564/DRR008478.cram"
+    
+    #the hash would be like this:
+    #$unique_cram_names_href{DRR008478"} = "ftp.sra.ebi.ac.uk/vol1/ERZ270/ERZ270564/DRR008478.cram"
+    $unique_cram_names_href{$cram_name} = $location_of_max_timestamp;
   }
 
   return \%unique_cram_names_href;
@@ -373,6 +374,10 @@ sub get_ENA_cram_location{
 
   my $biorep_id = shift;
 
+  if (not defined $unique_cram_locations_href) {
+    my $all_cram_locations_href = get_hash_of_locations_of_cram_submissions();
+    $unique_cram_locations_href = get_last_updated_cram_file_location_hash ($all_cram_locations_href);
+  }
   my $cram_locations_href = $unique_cram_locations_href; # $unique_cram_locations_href os global variable
 
   if($cram_locations_href->{$biorep_id}){
