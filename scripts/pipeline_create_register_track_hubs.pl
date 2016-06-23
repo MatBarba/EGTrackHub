@@ -19,11 +19,13 @@ use Getopt::Long;
 use DateTime;   
 use Time::HiRes;
 use Time::Piece;
+use Data::Dumper;
+
+use FindBin;
+use lib $FindBin::Bin . '/../modules';
 use EGTrackHubs::Registry;
 use EGTrackHubs::TrackHubCreation;
-use Data::Dumper;
 use EGTrackHubs::ENA;
-
 use EGTrackHubs::ArrayExpress;
 use EGTrackHubs::AEStudy;
 

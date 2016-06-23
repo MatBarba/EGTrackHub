@@ -14,8 +14,10 @@ use strict ;
 use warnings;
 use autodie;
 use File::Path qw(remove_tree);
-
 use Getopt::Long;
+
+use FindBin;
+use lib $FindBin::Bin . '/../modules';
 use EGTrackHubs::ArrayExpress;
 use EGTrackHubs::TrackHubCreation;
 use EGTrackHubs::AEStudy;
