@@ -5,7 +5,6 @@ use warnings;
 use Test::More;
 use Test::Exception;
 #use Devel::Cover;
-use Capture::Tiny ':all';
 
 
 # -----
@@ -48,14 +47,10 @@ $assembly_name = EGTrackHubs::EG::get_assembly_name_using_species_name("arabidop
 is($assembly_name,"TAIR10", "Arabidopsis thaliana has the exprected assembly name");
 
 #test6
-my ($stdout, $stderr, $assembly_name_unknown) = capture {
-  EGTrackHubs::EG::get_assembly_name_using_species_name("arabidopsis_thalian");
-};
 
-is($assembly_name_unknown,"unknown", "Returns \"unknown\" as an assembly name to a non-existent species name");
-
-#test8
-ok($stderr=~/The species name: \w+ is not in EG REST response/,'got the expected standard error when trying to use a species name that does not exist in plants');
+throws_ok {
+  my $assembly_name = EGTrackHubs::EG::get_assembly_name_using_species_name("arabidopsis_thalian");
+} qr/The species name: \w+ is not in EG REST response/, "Throws if no assembly for a non-existent species name";
 
 # -----
 # test get_species_name_assembly_id_hash method
