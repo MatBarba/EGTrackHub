@@ -10,7 +10,6 @@ my $logger = get_logger();
 
 use Test::More;
 use Test::Exception;
-use Capture::Tiny ':all';
 
 # -----
 # checks if the module can load
