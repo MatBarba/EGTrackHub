@@ -14,6 +14,7 @@ use DateTime::Format::Strptime;
 my $ua     = LWP::UserAgent->new;
 my $parser = XML::LibXML->new;
 my $unique_cram_locations_href;
+my $url_protocol = 'http';
 
 sub get_ENA_title {
     my ($id, $field_name) = @_;
@@ -318,12 +319,17 @@ sub get_hash_of_locations_of_cram_submissions{
 #2016-03-04	ftp.sra.ebi.ac.uk/vol1/ERZ270/ERZ270564/DRR008478.cram
       my @words= split(/\t/, $line);
       next if(!$words[1]) or (!$words[0]);
-
-      if($words[1] =~/.+\/(.+)\.cram/){   # the cram name could be of type : SRR2912853.cram or E-MTAB-4045.biorep85.cram
-    
-        $cram_name_ena_location{$1}{$words[0]}=$words[1]; # it would be $cram_name_ena_location{DRR008478"}{"2016-03-04"}="ftp.sra.ebi.ac.uk/vol1/ERZ270/ERZ270564/DRR008478.cram"
-        
-      }else{
+      
+      my $cram_date = $words[0];
+      my $cram_url  = $words[1];
+      $cram_url     = $url_protocol . '://' . $cram_url if $url_protocol and not $cram_url =~ /^(http|ftp):\/\//;
+      
+      # the cram name could be of type : SRR2912853.cram or E-MTAB-4045.biorep85.cram
+      if ($cram_url =~/.+\/(.+)\.cram/) {
+        my $cram_id = $1;
+        # it would be $cram_name_ena_location{DRR008478"}{"2016-03-04"}="ftp.sra.ebi.ac.uk/vol1/ERZ270/ERZ270564/DRR008478.cram"
+        $cram_name_ena_location{ $cram_id }{ $cram_date } = $cram_url;
+      } else {
         print STDERR "In method get_hash_of_locations_of_cram_submissions, module ENA.pm , line ".__LINE__." could not get the cram name here $line in the regex\n";
       }
     }

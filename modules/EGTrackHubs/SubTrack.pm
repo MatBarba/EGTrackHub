@@ -2,7 +2,8 @@ package EGTrackHubs::SubTrack;
 
 use strict;
 use warnings;
-
+use Carp;
+$Carp::Verbose = 1;
 
 ## this is a class of all the sub-track data of a sub-track stanza in the trackDb.txt file
 
@@ -34,7 +35,7 @@ sub new {
   
   # Check that the url has a protocol
   if (not $self->{big_data_url} =~ /(ftp|https?):\/\//) {
-    warn "Big_data_url has no protocol (http or ftp)";
+    carp "Big_data_url has no protocol (http or ftp)";
   }
 
   return bless $self, $class; # this is what makes a reference into an object
