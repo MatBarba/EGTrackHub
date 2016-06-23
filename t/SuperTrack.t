@@ -1,3 +1,6 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
 
 use Test::More;
 use Test::File;
@@ -10,21 +13,21 @@ use Test::Exception;
 # -----
 
 #test1
-use_ok(SuperTrack);  # it checks if it can use the module correctly
+use_ok('EGTrackHubs::SuperTrack');  # it checks if it can use the module correctly
 
 
 # -----
 # test constructor
 # -----
 
-my $st_obj=SuperTrack->new("SRP045759","long label here","metadata here");
+my $st_obj=EGTrackHubs::SuperTrack->new("SRP045759","long label here","metadata here");
 
 # test2
-isa_ok($st_obj,'SuperTrack','checks whether the object constructed is of my class type');
+isa_ok($st_obj,'EGTrackHubs::SuperTrack','checks whether the object constructed is of my class type');
 
 
 # test3
-dies_ok(sub{SuperTrack->new("blabla")},'checks if wrong object construction of my class dies');
+dies_ok(sub{EGTrackHubs::SuperTrack->new("blabla")},'checks if wrong object construction of my class dies');
 
 
 # -----

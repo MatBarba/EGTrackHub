@@ -1,3 +1,6 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
 
 use Test::More;
 use Test::Exception;
@@ -7,31 +10,23 @@ use Capture::Tiny ':all';
 # checks if the module can load
 # -----
 
-#test1
-use_ok(AEStudy); # it checks if it can use the module correctly
-
-#test2
-use_ok(ArrayExpress);  # it checks if it can use the module correctly
-
-#test3
-use_ok(Date::Manip);  # it checks if it can use the module correctly
-
-#test4
-use_ok(EG);  # it checks if it can use the module correctly
+use_ok('EGTrackHubs::AEStudy');
+use_ok('EGTrackHubs::ArrayExpress');
+use_ok('EGTrackHubs::EG');
 
 # -----
 # test constructor
 # -----
 
-my $plant_names_response_href= ArrayExpress::get_plant_names_AE_API();
+my $plant_names_response_href= EGTrackHubs::ArrayExpress::get_plant_names_AE_API();
 
-my $study_obj=AEStudy->new("SRP068911",$plant_names_response_href);
+my $study_obj=EGTrackHubs::AEStudy->new("SRP068911",$plant_names_response_href);
 
 # test5
-isa_ok($study_obj,'AEStudy','checks whether the object constructed is of my class type');
+isa_ok($study_obj,'EGTrackHubs::AEStudy','checks whether the object constructed is of my class type');
 
 # test6
-dies_ok(sub{AEStudy->new("blabla")},'checks if wrong object construction of my class dies');
+dies_ok(sub{EGTrackHubs::AEStudy->new("blabla")},'checks if wrong object construction of my class dies');
 
 # -----
 # test make_runs_tuple_plants_of_study method
@@ -57,7 +52,7 @@ is($study_id, "SRP068911", "study id method returns value as expected");
 # test get_biorep_ids_by_organism method
 # -----
 
-my $study_obj_3_assemblies=AEStudy->new("DRP000453",$plant_names_response_href); # see http://plantain:3000/json/70/getRunsByStudy/DRP000453
+my $study_obj_3_assemblies=EGTrackHubs::AEStudy->new("DRP000453",$plant_names_response_href); # see http://plantain:3000/json/70/getRunsByStudy/DRP000453
 my $biorep_ids_href_oryza_sativa=$study_obj_3_assemblies->get_biorep_ids_by_organism("oryza_sativa");
 
 #test10
@@ -74,22 +69,19 @@ cmp_ok($study_with_many_assemblies_number_of_all_bioreps, 'gt', $oryza_sativa_st
 # test get_organism_names_assembly_names method
 # -----
 
-#test12
-my $sample_ids_href= $study_obj_3_assemblies->get_organism_names_assembly_names;
-is($sample_ids_href->{oryza_rufipogon}, "OR_W1943", "organism_name - assembly_name hash returns value as expected currently for study DRP000453");
-
-#test13
-is($sample_ids_href->{oryza_indica}, "ASM465v1", "organism_name - assembly_name hash returns value as expected currently for study DRP000453");
-
-#test14
-is($sample_ids_href->{oryza_sativa}, "IRGSP-1.0", "organism_name - assembly_name hash returns value as expected currently for study DRP000453");
+{
+  my $sample_ids_href= $study_obj_3_assemblies->get_organism_names_assembly_names;
+  is($sample_ids_href->{oryza_rufipogon}, "OR_W1943", "organism_name - assembly_name hash returns value as expected currently for study DRP000453");
+  is($sample_ids_href->{oryza_indica}, "ASM465v1", "organism_name - assembly_name hash returns value as expected currently for study DRP000453");
+  is($sample_ids_href->{oryza_sativa}, "IRGSP-1.0", "organism_name - assembly_name hash returns value as expected currently for study DRP000453");
+}
 
 # -----
 # test get_sample_ids method
 # -----
 
 #test15
-my $study_obj_with_many_samples_per_biorep_id=AEStudy->new("SRP002106",$plant_names_response_href);
+my $study_obj_with_many_samples_per_biorep_id=EGTrackHubs::AEStudy->new("SRP002106",$plant_names_response_href);
 my $sample_ids_href = $study_obj_with_many_samples_per_biorep_id->get_sample_ids; # for study SRP002106
 
 ok(exists $sample_ids_href->{SAMN00009808} , "Sample id of Biorep E-GEOD-16631.biorep2 of study SRP002106 from oryza_sativa exists at the moment" );
@@ -212,7 +204,7 @@ dies_ok(sub{$study_obj_with_many_samples_per_biorep_id->give_big_data_file_type_
 # -----
 
 #test35
-my $study_obj_SRP067728=AEStudy->new("SRP067728",$plant_names_response_href);
+my $study_obj_SRP067728=EGTrackHubs::AEStudy->new("SRP067728",$plant_names_response_href);
 
 my $unix_date = $study_obj_SRP067728->get_AE_last_processed_unix_date();
 # the max date of the bioreps is Tue Jan 12 2016 06:50:49, in unix format that is: 1452581449

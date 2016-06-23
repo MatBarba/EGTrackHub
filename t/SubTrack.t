@@ -1,84 +1,80 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use autodie;
+use File::Temp;
 
 use Test::More;
 use Test::File;
 use Test::Exception;
-#use Devel::Cover;
 
+#use Devel::Cover;
 
 # -----
 # checks if the module can load
 # -----
 
-#test1
-use_ok(SubTrack);  # it checks if it can use the module correctly
-
+use_ok('EGTrackHubs::SubTrack');
 
 # -----
 # test constructor
 # -----
 
-my $st_obj=SubTrack->new("SRR351196","SAMN00728445","bigdata url","short label" ,"long label", "cram", "on");
+my $st_obj = EGTrackHubs::SubTrack->new(
+    "SRR351196",  "SAMN00728445", "bigdata url", "short label",
+    "long label", "cram",         "on"
+);
 
-# test2
-isa_ok($st_obj,'SubTrack','checks whether the object constructed is of my class type');
-
-
-# test3
-dies_ok(sub{SubTrack->new("blabla")},'checks if wrong object construction of my class dies');
-
+isa_ok( $st_obj, 'EGTrackHubs::SubTrack',
+    'The object constructed is of my class type' );
+dies_ok( sub { EGTrackHubs::SubTrack->new("blabla") },
+    'Wrong object construction dies' );
 
 # -----
 # test print_track_stanza method
 # -----
-my $test_file = "./test_file";
+my $test_file = File::Temp->new();
 
-open(my $fh, '>', $test_file)
- or die "Error in ".__FILE__." line ".__LINE__." Could not open file \.\/test_file!\n";
+{
+    open( my $fh, '>', $test_file );
+    $st_obj->print_track_stanza($fh);
+    close($fh);
 
-$st_obj->print_track_stanza($fh); 
+    file_exists_ok( ($test_file), "File I wrote exists" );
+    file_readable_ok( $test_file, "File is readable" );
+    file_not_empty_ok( $test_file, "File is not empty" );
 
-close($fh);
+    open( my $test_fh, $test_file );
+    my @file_lines = readline $test_fh;
+    close($test_fh);
+    my $string_content = join( "", @file_lines );
+    is(
+        $string_content,
+        "\ttrack SRR351196\n\tparent SAMN00728445\n\tbigDataUrl bigdata url\n\tshortLabel short label\n\tlongLabel long label\n\ttype cram\n\tvisibility pack\n\n",
+        "test_file has the expected content"
+    );
+}
 
-#test4
-file_exists_ok(($test_file),"Check if the file I wrote exists");
+{
+    $st_obj = EGTrackHubs::SubTrack->new(
+        "SRR351196",  "SAMN00728445", "bigdata url", "short label",
+        "long label", "cram",         "off"
+    );
 
-#test5     
-file_readable_ok($test_file,"Checks if the file is readable");
+    open( my $fh, '>', $test_file );
+    $st_obj->print_track_stanza($fh);
+    close($fh);
 
-#test6
-file_not_empty_ok($test_file,"Checks if the file is not empty");
+    open( my $test_fh, $test_file );
+    my @file_lines = readline $test_fh;
+    close($test_fh);
 
-#test7
-open(IN, $test_file) or die "Can't open $test_file.\n";
-
-my @file_lines=<IN>;
-
-my $string_content=join("",@file_lines);
-
-is($string_content, "\ttrack SRR351196\n\tparent SAMN00728445\n\tbigDataUrl bigdata url\n\tshortLabel short label\n\tlongLabel long label\n\ttype cram\n\tvisibility pack\n\n", "test_file has the expected content");
-
-close(IN);
-
-$st_obj=SubTrack->new("SRR351196","SAMN00728445","bigdata url","short label" ,"long label", "cram", "off");
-
-open(my $fh, '>', $test_file)
- or die "Error in ".__FILE__." line ".__LINE__." Could not open file \.\/test_file!\n";
-
-$st_obj->print_track_stanza($fh);
- 
-close($fh);
-
-open(IN, $test_file) or die "Can't open $test_file.\n";
-
-@file_lines=<IN>;
-
-$string_content=join("",@file_lines);
-
-#test8
-is($string_content, "\ttrack SRR351196\n\tparent SAMN00728445\n\tbigDataUrl bigdata url\n\tshortLabel short label\n\tlongLabel long label\n\ttype cram\n\tvisibility hide\n\n", "test_file has the expected content");
-
-close(IN);
-
-`rm $test_file`;
+    my $string_content = join( "", @file_lines );
+    is(
+        $string_content,
+        "\ttrack SRR351196\n\tparent SAMN00728445\n\tbigDataUrl bigdata url\n\tshortLabel short label\n\tlongLabel long label\n\ttype cram\n\tvisibility hide\n\n",
+        "test_file has the expected content"
+    );
+}
 
 done_testing();

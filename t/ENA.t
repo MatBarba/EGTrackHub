@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 use strict;
 use warnings;
 use Carp;
@@ -14,7 +15,7 @@ use Capture::Tiny ':all';
 # -----
 # checks if the module can load
 # -----
-use_ok('ENA');
+use_ok('EGTrackHubs::ENA');
 
 # -----
 # test get_ENA_study_title method
@@ -22,7 +23,7 @@ use_ok('ENA');
 my $study_id = "DRP000315";
 
 #test4
-my $study_title = ENA::get_ENA_study_title($study_id);
+my $study_title = EGTrackHubs::ENA::get_ENA_study_title($study_id);
 is(
     $study_title,
     "Oryza sativa Japonica Group transcriptome sequencing",
@@ -31,14 +32,14 @@ is(
 
 my $wrong_study_id = "DRP0003";
 throws_ok {
-  my $study_title_wrong_study_title = ENA::get_ENA_study_title($wrong_study_id);
+  my $study_title_wrong_study_title = EGTrackHubs::ENA::get_ENA_study_title($wrong_study_id);
 } qr/Can't find in ENA/, "Wrong study id throws";
 
 # -----
 # test get_ENA_title method
 # -----
 
-my $sample_title = ENA::get_ENA_title("SAMN02666886");
+my $sample_title = EGTrackHubs::ENA::get_ENA_title("SAMN02666886");
 is(
     $sample_title,
     "Arabidopsis thaliana Bur-0 X Col-0 seedling, biological replicate 1",
@@ -47,14 +48,14 @@ is(
 
 {
   throws_ok {
-    my $sample_title_wrong_sample_title = ENA::get_ENA_title("SAMN0266688");
+    my $sample_title_wrong_sample_title = EGTrackHubs::ENA::get_ENA_title("SAMN0266688");
   } qr/Can't find in ENA/,
     "Wrong sample id throws";
 }
 
 {
   throws_ok {
-    my $title = ENA::get_ENA_title("SAMN03782116");
+    my $title = EGTrackHubs::ENA::get_ENA_title("SAMN03782116");
   } qr/Can't get a node/, "Wrong sample id throws";
 }
 
@@ -63,7 +64,7 @@ is(
 # -----
 
 #test10
-my $meta_keys_aref = ENA::get_all_sample_keys()
+my $meta_keys_aref = EGTrackHubs::ENA::get_all_sample_keys()
   ;    # array ref that has all the keys for the ENA warehouse metadata
 my %meta_keys_hash = map { $_ => 1 } @$meta_keys_aref;
 
@@ -82,7 +83,7 @@ foreach my $meta_key (@meta_keys_to_test) {
 my $sample_id = "SAMN02666886";
 
 my $sample_metadata_href =
-  ENA::get_sample_metadata_response_from_ENA_warehouse_rest_call( $sample_id,
+  EGTrackHubs::ENA::get_sample_metadata_response_from_ENA_warehouse_rest_call( $sample_id,
     $meta_keys_aref );
 
 #test16
@@ -104,7 +105,7 @@ is(
 
 #test18
 my $url =
-  ENA::create_url_for_call_sample_metadata( "SAMN02666886", $meta_keys_aref );
+  EGTrackHubs::ENA::create_url_for_call_sample_metadata( "SAMN02666886", $meta_keys_aref );
 like(
     $url,
 qr/^http:\/\/www.ebi.ac.uk\/ena\/data\/.+accession=SAMN02666886.+sex.+tax_id.*/,

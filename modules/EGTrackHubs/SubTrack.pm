@@ -1,4 +1,4 @@
-package SubTrack;
+package EGTrackHubs::SubTrack;
 
 use strict;
 use warnings;

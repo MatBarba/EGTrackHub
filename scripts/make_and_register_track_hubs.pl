@@ -15,11 +15,11 @@ use autodie;
 use File::Path qw(remove_tree);
 
 use Getopt::Long;
-use ArrayExpress;
-use TrackHubCreation;
-use AEStudy;
-use Registry;
-use EG;
+use EGTrackHubs::ArrayExpress;
+use EGTrackHubs::TrackHubCreation;
+use EGTrackHubs::AEStudy;
+use EGTrackHubs::Registry;
+use EGTrackHubs::EG;
 
 my $registry_user_name = $ENV{'THR_USER'}; 
 my $registry_pwd = $ENV{'THR_PWD'};
@@ -59,9 +59,9 @@ my %study_ids;
 my %species_names;
 my @obsolete_studies;
 
-my $plant_names_href_EG = EG::get_plant_names;
+my $plant_names_href_EG = EGTrackHubs::EG::get_plant_names;
 
-my %study_ids_from_AE = %{ArrayExpress::get_completed_study_ids_for_plants($plant_names_href_EG)};
+my %study_ids_from_AE = %{EGTrackHubs::ArrayExpress::get_completed_study_ids_for_plants($plant_names_href_EG)};
 
 open(my $locations_fh, $file_location_of_study_ids_or_species);
 
@@ -78,7 +78,7 @@ if ($study_ids_file_content){
 
 }else{  # the user will have species names in the text file
 
-  my %eg_species_names= %{EG::get_plant_names()};
+  my %eg_species_names= %{EGTrackHubs::EG::get_plant_names()};
 
   while(my $line = readline $locations_fh){
     chomp $line;
@@ -92,7 +92,7 @@ if ($study_ids_file_content){
 
   foreach my $species_name (keys %species_names){
 
-    my %study_ids_of_plant = %{ArrayExpress::get_study_ids_for_plant($species_name)};
+    my %study_ids_of_plant = %{EGTrackHubs::ArrayExpress::get_study_ids_for_plant($species_name)};
 
     foreach my $study_id_of_plant (keys %study_ids_of_plant){
 
@@ -111,7 +111,7 @@ if ($study_ids_file_content){
 {
   print_calling_params_logging($registry_user_name , $registry_pwd , $server_dir_full_path , $server_url , $track_hub_visibility, $file_location_of_study_ids_or_species);
 
-  my $registry_obj = Registry->new($registry_user_name, $registry_pwd,$track_hub_visibility); 
+  my $registry_obj = EGTrackHubs::Registry->new($registry_user_name, $registry_pwd, $track_hub_visibility);
 
   if (! -d $server_dir_full_path) {  # if the directory that the user defined to write the files of the track hubs doesnt exist, I try to make it
 
@@ -120,14 +120,14 @@ if ($study_ids_file_content){
     mkdir $server_dir_full_path;
   }
 
-  my $plant_names_AE_response_href = ArrayExpress::get_plant_names_AE_API();
+  my $plant_names_AE_response_href = EGTrackHubs::ArrayExpress::get_plant_names_AE_API();
 
   if($plant_names_AE_response_href == 0){
 
     die "Could not get plant names with processed runs from AE API calling script ".__FILE__." line: ".__LINE__."\n";
   }
 
-  my $organism_assmblAccession_EG_href = EG::get_species_name_assembly_id_hash(); #$hash{"brachypodium_distachyon"} = "GCA_000005505.1"         also:  $hash{"oryza_rufipogon"} = "0000"
+  my $organism_assmblAccession_EG_href = EGTrackHubs::EG::get_species_name_assembly_id_hash(); #$hash{"brachypodium_distachyon"} = "GCA_000005505.1"         also:  $hash{"oryza_rufipogon"} = "0000"
 
   print_registry_registered_number_of_th($registry_obj);
  
@@ -184,7 +184,7 @@ sub make_register_THs_with_logging{
 
   foreach my $study_id (keys %$study_ids_href){
 
-    my $study_obj = AEStudy->new($study_id,$plant_names_AE_response_href);
+    my $study_obj = EGTrackHubs::AEStudy->new($study_id,$plant_names_AE_response_href);
 
     my $sample_ids_href = $study_obj->get_sample_ids();
     if(!$sample_ids_href){  # there are cases where the AE API returns a study with the the sample_ids field to be null , I want to skip these studies
@@ -207,7 +207,7 @@ sub make_register_THs_with_logging{
       print " (new) ";
     }
 
-    my $track_hub_creator_obj = TrackHubCreation->new($study_id,$server_dir_full_path);
+    my $track_hub_creator_obj = EGTrackHubs::TrackHubCreation->new($study_id,$server_dir_full_path);
     my $script_output = $track_hub_creator_obj->make_track_hub($plant_names_AE_response_href);
 
     print $script_output;

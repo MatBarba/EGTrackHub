@@ -1,9 +1,9 @@
-package ArrayExpress;
+package EGTrackHubs::ArrayExpress;
 
 use strict;
 use warnings;
 
-use JsonResponse;
+use EGTrackHubs::JsonResponse;
 
 # AE public server if the REST URLs
 my $array_express_url = "http://www.ebi.ac.uk/fg/rnaseq/api/json/70";
@@ -24,7 +24,7 @@ sub get_plant_names_AE_API {
 #{"ORGANISM":"arabidopsis_lyrata_subsp._lyrata","REFERENCE_ORGANISM":"arabidopsis_lyrata"},{"ORGANISM":"arabidopsis_thaliana","REFERENCE_ORGANISM":"arabidopsis_thaliana"},
   
     try {
-        my $plants_data = JsonResponse::get_Json_response($plants_url);
+        my $plants_data = EGTrackHubs::JsonResponse::get_Json_response($plants_url);
 
         foreach my $plant_data_ref (@$plants_data) {
             # this hash has all possible names of plants that Robert is using in his REST calls;
@@ -46,7 +46,7 @@ sub get_runs_json_for_study {
     
     if (defined $study_id) {
       my $url = "$array_express_url/getRunsByStudy/$study_id";
-      return JsonResponse::get_Json_response($url);
+      return EGTrackHubs::JsonResponse::get_Json_response($url);
     } else {
       return;
     }
@@ -66,7 +66,7 @@ sub get_completed_study_ids_for_plants
     foreach my $plant_name ( keys %{$plant_names_href_EG} ) {
         last if (defined $limit and $n > $limit);
         my $biorep_url = $get_runs_by_organism_endpoint . $plant_name;
-        my $biorep_stanza_json = JsonResponse::get_Json_response($biorep_url);
+        my $biorep_stanza_json = EGTrackHubs::JsonResponse::get_Json_response($biorep_url);
 
         foreach my $hash_ref (@$biorep_stanza_json) {
           if ( $hash_ref->{"STATUS"} eq "Complete" ) {
@@ -91,7 +91,7 @@ sub get_study_ids_for_plant {
 #[{"STUDY_ID":"DRP000315","SAMPLE_IDS":"SAMD00009892","BIOREP_ID":"DRR000749","RUN_IDS":"DRR000749","ORGANISM":"oryza_sativa_japonica_group","REFERENCE_ORGANISM":"oryza_sativa","STATUS":"Complete","ASSEMBLY_USED":"IRGSP-1.0","ENA_LAST_UPDATED":"Fri Jun 19 2015 17:39:45","LAST_PROCESSED_DATE":"Mon Sep 07 2015 00:39:36","CRAM_LOCATION":"ftp://ftp.ebi.ac.uk/pub/databases/arrayexpress/data/atlas/rnaseq/DRR000/DRR000749/DRR000749.cram","MAPPING_QUALITY":70},
     
     try {
-      my $plant_names_json = JsonResponse::get_Json_response($url);
+      my $plant_names_json = EGTrackHubs::JsonResponse::get_Json_response($url);
 
       foreach my $hash_ref (@$plant_names_json) {
         if ( $hash_ref->{"STATUS"} eq "Complete" ) {

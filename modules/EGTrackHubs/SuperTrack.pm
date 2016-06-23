@@ -1,4 +1,4 @@
-package SuperTrack;
+package EGTrackHubs::SuperTrack;
 
 use strict;
 use warnings;
