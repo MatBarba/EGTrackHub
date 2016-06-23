@@ -1,17 +1,15 @@
-
-# do first:
-# export THR_USER=your_user_name_in_your_track_hub_registry_account
-# export THR_PWD=your_password_in_your_track_hub_registry_account
-
+#!/usr/bin/env perl
 use strict ;
 use warnings;
 
-use Registry;
-
+use EGTrackHubs::Registry;
 
 my $registry_user_name = $ENV{'THR_USER'}; 
 my $registry_pwd = $ENV{'THR_PWD'};
 
+if (not $registry_user_name or not $registry_pwd) {
+  die("You need to export both THR_USER and THR_PWD (TrackHub registry username and password)\n");
+}
 
 my $registry_obj = Registry->new($registry_user_name, $registry_pwd,"public"); # dosn't matter the visibility setting in this case
 
