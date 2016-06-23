@@ -337,7 +337,7 @@ sub make_biosample_sub_track_obj{
   #my $big_data_url = $study_obj->get_big_data_file_location_from_biorep_id($biorep_id);
 
   my $study_id=$study_obj->id;
-  my $big_data_url = ENA::get_ENA_cram_location($biorep_id) ; 
+  my $big_data_url = EGTrackHubs::ENA::get_ENA_cram_location($biorep_id) ; 
 
   if (!$big_data_url){ # if the cram file is not yet in ENA the method ENA::get_ENA_cram_location($biorep_id) returns 0
 

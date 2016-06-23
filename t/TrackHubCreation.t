@@ -137,7 +137,7 @@ like($super_track_obj->{metadata}, $expected_metadata_pattern, "super track meta
 # -----
 # test make_biosample_sub_track_obj method
 # -----
-my $expected_data_url = "ftp://ftp.ebi.ac.uk/pub/databases/arrayexpress/data/atlas/rnaseq/aggregated_techreps/E-MTAB-2037/E-MTAB-2037.biorep4.cram";
+my $expected_data_url = "ftp.sra.ebi.ac.uk/vol1/ERZ310/ERZ310303/E-MTAB-2037.biorep4.cram";
 my $expected_track_long_label = "Illumina Genome Analyzer IIx sequencing; Illumina sequencing of cDNAs generated from mRNAs_retro_PAAF;<a href=\"http://www.ebi.ac.uk/arrayexpress/experiments/E-GEOD-55482/samples/?full=truehttp://www.ebi.ac.uk/~rpetry/bbrswcapital/E-MTAB-2037.bioreps.txt\">E-MTAB-2037.biorep4</a>";
 my $expected_file_type  = 'cram';
 my $expected_visibility = 'on';
