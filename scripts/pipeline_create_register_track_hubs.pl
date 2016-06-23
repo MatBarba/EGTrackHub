@@ -9,6 +9,7 @@
 # perl pipeline_create_register_track_hubs.pl -server_dir_full_path /nfs/ensemblgenomes/ftp/pub/misc_data/Track_Hubs -server_url ftp://ftp.ensemblgenomes.org/pub/misc_data/Track_Hubs -th_visibility public 1> output_wh_23Feb 2>errors_wh_23Feb
 # perl pipeline_create_register_track_hubs.pl -server_dir_full_path /nfs/ensemblgenomes/ftp/pub/misc_data/Track_Hubs -server_url ftp://ftp.ensemblgenomes.org/pub/misc_data/Track_Hubs -th_visibility public  -do_track_hubs_from_scratch 1> output_fs_wh_16Feb 2>errors_fs_wh_16Feb
 
+#!/usr/bin/env perl
 use strict ;
 use warnings;
 use autodie;

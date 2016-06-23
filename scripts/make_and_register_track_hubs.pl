@@ -9,6 +9,7 @@
 # or 
 # perl make_and_register_track_hubs.pl -server_dir_full_path /nfs/ensemblgenomes/ftp/pub/misc_data/Track_Hubs -server_url ftp://ftp.ensemblgenomes.org/pub/misc_data/Track_Hubs -th_visibility public  -file_location_of_study_ids_or_species ./file_with_ids -file_content_species_names 1> output 2>errors
 
+#!/usr/bin/env perl
 use strict ;
 use warnings;
 use autodie;
