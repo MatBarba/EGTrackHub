@@ -31,6 +31,11 @@ sub new {
     file_type => $type ,
     visibility => $visibility
   };
+  
+  # Check that the url has a protocol
+  if (not $self->{big_data_url} =~ /(ftp|https?):\/\//) {
+    warn "Big_data_url has no protocol (http or ftp)";
+  }
 
   return bless $self, $class; # this is what makes a reference into an object
 }
@@ -48,7 +53,7 @@ sub print_track_stanza{
 
   print $fh "	track ". $self->{track_name}."\n"; 
   print $fh "	parent ". $self->{parent_name}."\n"; 
-  print $fh "	bigDataUrl "."http://".$self->{big_data_url}."\n"; 
+  print $fh "	bigDataUrl ".$self->{big_data_url}."\n"; 
   print $fh "	shortLabel ".$self->{short_label}."\n";
   print $fh "	longLabel ".$self->{long_label}."\n";
   print $fh "	type ".$self->{file_type}."\n";

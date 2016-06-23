@@ -21,7 +21,7 @@ use_ok('EGTrackHubs::SubTrack');
 # -----
 
 my $st_obj = EGTrackHubs::SubTrack->new(
-    "SRR351196",  "SAMN00728445", "bigdata url", "short label",
+    "SRR351196",  "SAMN00728445", "http://bigdata.url", "short label",
     "long label", "cram",         "on"
 );
 
@@ -50,14 +50,14 @@ my $test_file = File::Temp->new();
     my $string_content = join( "", @file_lines );
     is(
         $string_content,
-        "\ttrack SRR351196\n\tparent SAMN00728445\n\tbigDataUrl bigdata url\n\tshortLabel short label\n\tlongLabel long label\n\ttype cram\n\tvisibility pack\n\n",
+        "\ttrack SRR351196\n\tparent SAMN00728445\n\tbigDataUrl http://bigdata.url\n\tshortLabel short label\n\tlongLabel long label\n\ttype cram\n\tvisibility pack\n\n",
         "test_file has the expected content"
     );
 }
 
 {
     $st_obj = EGTrackHubs::SubTrack->new(
-        "SRR351196",  "SAMN00728445", "bigdata url", "short label",
+        "SRR351196",  "SAMN00728445", "http://bigdata.url", "short label",
         "long label", "cram",         "off"
     );
 
@@ -72,7 +72,7 @@ my $test_file = File::Temp->new();
     my $string_content = join( "", @file_lines );
     is(
         $string_content,
-        "\ttrack SRR351196\n\tparent SAMN00728445\n\tbigDataUrl bigdata url\n\tshortLabel short label\n\tlongLabel long label\n\ttype cram\n\tvisibility hide\n\n",
+        "\ttrack SRR351196\n\tparent SAMN00728445\n\tbigDataUrl http://bigdata.url\n\tshortLabel short label\n\tlongLabel long label\n\ttype cram\n\tvisibility hide\n\n",
         "test_file has the expected content"
     );
 }
