@@ -8,6 +8,8 @@ HTTP::Request::Common
 DateTime
 Time::HiRes
 Time::Piece
+Moose
+namespace::autoclean
 
 Test::JSON
 Test::HTTP::Response
