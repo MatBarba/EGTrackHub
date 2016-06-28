@@ -8,6 +8,7 @@ $Carp::Verbose = 1;
 
 use Moose;
 use namespace::autoclean;
+use File::Spec;
 
 use EGTrackHubs::TrackHubDB::Genome;
 
@@ -61,7 +62,8 @@ has dir => (
 
 has genomes => (
   is      => 'rw',
-  isa     => 'HashRef[EGTrackHubs::TrackHubDB::Genome]'
+  isa     => 'HashRef[EGTrackHubs::TrackHubDB::Genome]',
+  default => sub { {} },
 );
 
 sub create_files {
@@ -82,18 +84,23 @@ sub create_files {
 sub make_hub_file {
   my $self = shift;
   
+  croak "Can't create hub file without a directory." if (not defined $self->{dir});
+  my $hub_path = File::Spec->catfile($self->{dir}, $self->{hub_file});
   
+  open my $hub_fh, '>', $hub_path;
+  print $hub_fh $self->hub_file_content;
+  close $hub_fh;
 }
 
-sub create_hub_file_content {
+sub hub_file_content {
   my $self = shift;
   
   my %content = (
-    hub => $self->id,
-    shortLabel => $self->short_label,
-    longLabel => $self->long_label,
-    genomesFile => $self->genomes_file,
-    email  => $self->email,
+    hub            => $self->id,
+    shortLabel     => $self->short_label,
+    longLabel      => $self->long_label,
+    genomesFile    => $self->genomes_file,
+    email          => $self->email,
     descriptionUrl => $self->description_url,
   );
   my @content_order = qw(
@@ -119,7 +126,7 @@ sub create_hub_file_content {
     croak "Missing keys: " . join(', ', sort keys %missing_keys);
   }
   
-  return join "\n", @lines;
+  return join("\n", @lines) . "\n";
 }
 
 sub make_genomes_file {
@@ -136,8 +143,10 @@ sub add_genome {
   my $self = shift;
   my ($genome) = @_;
   
-  $self->genomes->{$genome->id} = $genome;
-  
+  if (defined $self->genomes->{ $genome->id }) {
+    croak "The trackhub already has a genome named $genome->id";
+  }
+  my $genomes = $self->genomes->{ $genome->id } = $genome;
 }
 
 
