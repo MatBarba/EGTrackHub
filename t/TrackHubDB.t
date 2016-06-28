@@ -96,6 +96,14 @@ cmp_ok(
   "Hub file content is as expected"
 );
 
+# Try to create genomes files without genomes
+dies_ok {
+  my $genomes_content = $th->genomes_file_content;
+} "Creating a genome file content without genomes should die";
+dies_ok {
+  $th->make_genomes_file;
+} "Creating a genome file without genomes should die";
+
 # Now, add a genome
 my %genome_sample = (
   id  => 'genome_1',
@@ -111,6 +119,22 @@ ok(
 dies_ok {
   $th->add_genome($genome);
 } "Add a genome to the TrackHub with the same id should fail";
+
+# Create the genomes file
+ok (
+  my $genomes_content = $th->genomes_file_content,
+  "Create a genome file content with genomes"
+);
+ok (
+  $th->make_genomes_file,
+  "Creating a genome file without genomes should die"
+);
+
+# Create genomes dirs
+ok (
+   $th->make_genomes_dirs,
+  "Create genomes dirs",
+);
 
 done_testing();
 

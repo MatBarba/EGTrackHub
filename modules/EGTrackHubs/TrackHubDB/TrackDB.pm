@@ -1,4 +1,4 @@
-package EGTrackHubs::TrackHubDB::TrackDB;
+package EGTrackHubs::TrackHubDB::Track;
 
 use strict;
 use warnings;
@@ -42,5 +42,4 @@ sub to_string {
 
 __PACKAGE__->meta->make_immutable;
 1;
-
 

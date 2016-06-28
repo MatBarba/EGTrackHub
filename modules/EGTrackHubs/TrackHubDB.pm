@@ -79,6 +79,7 @@ sub create_files {
   $self->make_hub_file();
   $self->make_genomes_file();
   $self->make_genomes_dirs();
+  return 1;
 }
 
 sub make_hub_file {
@@ -90,6 +91,7 @@ sub make_hub_file {
   open my $hub_fh, '>', $hub_path;
   print $hub_fh $self->hub_file_content;
   close $hub_fh;
+  return 1;
 }
 
 sub hub_file_content {
@@ -132,11 +134,41 @@ sub hub_file_content {
 sub make_genomes_file {
   my $self = shift;
   
+  if (not defined $self->dir) {
+    croak "Can't create genomes file without a directory.";
+  } elsif (not keys %{ $self->genomes }) {
+    croak "Can't create genomes files without any genome assemblies";
+  }
+  my $genomes_path = File::Spec->catfile($self->dir, $self->genomes_file);
+  
+  open my $genomes_fh, '>', $genomes_path;
+  print $genomes_fh $self->genomes_file_content;
+  close $genomes_fh;
+  return 1;
+}
+
+sub genomes_file_content {
+  my $self = shift;
+  
+  if (not keys %{ $self->genomes }) {
+    croak "Can't create genomes files without any genome assemblies";
+  }
+  my @lines;
+  for my $genome_id (keys %{ $self->genomes }) {
+    my $genome = $self->genomes->{ $genome_id };
+    push @lines, $genome->config_text;
+  }
+  return join "\n\n", @lines;
 }
 
 sub make_genomes_dirs {
   my $self = shift;
   
+  for my $genome_id (keys %{ $self->genomes }) {
+    my $genome = $self->genomes->{ $genome_id };
+    $genome->make_dir;
+  }
+  return 1;
 }
 
 sub add_genome {
@@ -147,6 +179,8 @@ sub add_genome {
     croak "The trackhub already has a genome named $genome->id";
   }
   my $genomes = $self->genomes->{ $genome->id } = $genome;
+  $genomes->dir($self->dir);
+  return 1;
 }
 
 
