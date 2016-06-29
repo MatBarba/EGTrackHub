@@ -9,6 +9,7 @@ $Carp::Verbose = 1;
 use Moose;
 use namespace::autoclean;
 use File::Spec;
+use File::Path qw(make_path);
 
 use EGTrackHubs::TrackHubDB::Genome;
 
@@ -55,7 +56,14 @@ has genomes_file => (
   default => 'genomes.txt'
 );
 
-has dir => (
+has root_dir => (
+  is     => 'rw',
+  isa    => 'Str',
+  writer => '_set_root_dir',
+  reader => '_get_root_dir',
+);
+
+has hub_dir => (
   is     => 'rw',
   isa    => 'Str',
 );
@@ -65,6 +73,29 @@ has genomes => (
   isa     => 'HashRef[EGTrackHubs::TrackHubDB::Genome]',
   default => sub { {} },
 );
+
+sub root_dir {
+  my $self = shift;
+  my ($dir) = @_;
+  
+  if (defined $dir) {
+    $self->_set_root_dir($dir);
+    $self->update_hub_dir;
+  }
+  
+  return $self->_get_root_dir;
+}
+
+sub update_hub_dir {
+  my ($self) = shift;
+  die "Can't update hub dir if the root dir is not defined" if not defined $self->_get_root_dir;
+  
+  my $hub_dir = File::Spec->catfile(
+    $self->_get_root_dir,
+    $self->id
+  );
+  $self->hub_dir($hub_dir);
+}
 
 sub create_files {
   my ($self, $dir) = @_;
@@ -85,9 +116,10 @@ sub create_files {
 sub make_hub_file {
   my $self = shift;
   
-  croak "Can't create hub file without a directory." if (not defined $self->{dir});
-  my $hub_path = File::Spec->catfile($self->{dir}, $self->{hub_file});
+  croak "Can't create hub file without a directory." if (not defined $self->hub_dir);
+  my $hub_path = File::Spec->catfile($self->hub_dir, $self->hub_file);
   
+  make_path $self->hub_dir;
   open my $hub_fh, '>', $hub_path;
   print $hub_fh $self->hub_file_content;
   close $hub_fh;
@@ -134,12 +166,15 @@ sub hub_file_content {
 sub make_genomes_file {
   my $self = shift;
   
-  if (not defined $self->dir) {
+  if (not defined $self->hub_dir) {
     croak "Can't create genomes file without a directory.";
   } elsif (not keys %{ $self->genomes }) {
     croak "Can't create genomes files without any genome assemblies";
   }
-  my $genomes_path = File::Spec->catfile($self->dir, $self->genomes_file);
+  my $genomes_path = File::Spec->catfile(
+    $self->hub_dir,
+    $self->genomes_file
+  );
   
   open my $genomes_fh, '>', $genomes_path;
   print $genomes_fh $self->genomes_file_content;
@@ -179,7 +214,7 @@ sub add_genome {
     croak "The trackhub already has a genome named $genome->id";
   }
   my $genomes = $self->genomes->{ $genome->id } = $genome;
-  $genomes->dir($self->dir);
+  $genomes->hub_dir($self->hub_dir);
   return 1;
 }
 

@@ -73,7 +73,7 @@ dies_ok {
   $th->make_hub_file
   }  "Create hub file without defined dir should fail";
 ok(
-  $th->dir($tmp_dir.''),
+  $th->root_dir($tmp_dir.''),
   "Set directory to $tmp_dir"
 );
 ok(
@@ -82,8 +82,8 @@ ok(
 );
 
 my $hub_path = File::Spec->catfile(
-  $th->{dir},
-  $th->{hub_file}
+  $th->hub_dir,
+  $th->hub_file
 );
 ok(
   -s $hub_path,

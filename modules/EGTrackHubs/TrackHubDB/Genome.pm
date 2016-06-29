@@ -18,7 +18,14 @@ has id => (
   required  => 1,
 );
 
-has dir => (
+has hub_dir => (
+  is     => 'rw',
+  isa    => 'Str',
+  writer => '_set_hub_dir',
+  reader => '_get_hub_dir',
+);
+
+has genome_dir => (
   is     => 'rw',
   isa    => 'Str',
 );
@@ -31,17 +38,40 @@ has trackdb_file => (
 
 has trackdbs => (
   is      => 'rw',
-  isa     => 'HashRef[EGTrackHubs::TrackHubDB::TrackDB]',
+  isa     => 'HashRef[EGTrackHubs::TrackHubDB::Track]',
 );
+
+sub hub_dir {
+  my $self = shift;
+  my ($dir) = @_;
+  
+  if (defined $dir) {
+    $self->_set_hub_dir($dir);
+    $self->update_genome_dir;
+  }
+  
+  return $self->_get_hub_dir;
+}
+
+sub update_genome_dir {
+  my ($self) = shift;
+  die "Can't update genome dir if the hub dir is not defined" if not defined $self->_get_hub_dir;
+  
+  my $genome_dir = File::Spec->catfile(
+    $self->_get_hub_dir,
+    $self->id
+  );
+  $self->genome_dir($genome_dir);
+}
 
 sub config_text {
   my $self = shift;
   
-  if (not defined $self->dir) {
+  if (not defined $self->genome_dir) {
     croak "Can't create config text without a directory.";
   }
   my $trackdb_path = File::Spec->catfile(
-    $self->dir, 
+    $self->genome_dir,
     $self->trackdb_file
   );
   
@@ -74,21 +104,18 @@ sub config_text {
 sub make_dir {
   my $self = shift;
   
-  if (not defined $self->dir) {
-    croak "Can't create hub file without a directory.";
+  if (not defined $self->genome_dir) {
+    croak "Can't create genome file without a directory.";
   }
   
-  my $dir_path = File::Spec->catfile(
-    $self->{dir}, $self->{id}
-  );
-  mkdir $dir_path;
+  mkdir $self->genome_dir;
   return 1;
 }
 
-sub add_trackdb {
+sub add_track {
   my $self = shift;
-  my ($trackdb) = @_;
-  $self->trackdbs->{$trackdb->id} = $trackdb;
+  my ($track) = @_;
+  $self->tracks->{$track->id} = $track;
   return 1;
 }
 
