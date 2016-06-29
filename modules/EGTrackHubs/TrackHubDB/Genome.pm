@@ -48,13 +48,13 @@ sub hub_dir {
   
   if (defined $dir) {
     $self->_set_hub_dir($dir);
-    $self->update_genome_dir;
+    $self->_update_genome_dir;
   }
   
   return $self->_get_hub_dir;
 }
 
-sub update_genome_dir {
+sub _update_genome_dir {
   my ($self) = shift;
   die "Can't update genome dir if the hub dir is not defined" if not defined $self->_get_hub_dir;
   
@@ -102,7 +102,7 @@ sub config_text {
   return join("\n", @lines) . "\n";
 }
 
-sub make_dir {
+sub make_genome_dir {
   my $self = shift;
   
   if (not defined $self->genome_dir) {
@@ -116,7 +116,12 @@ sub make_dir {
 sub add_track {
   my $self = shift;
   my ($track) = @_;
-  $self->tracks->{$track->id} = $track;
+  
+  if (not $track) {
+    carp "Warning: no track given to add to the genome";
+    return;
+  }
+  $self->tracks->{ $track->id } = $track;
   return 1;
 }
 

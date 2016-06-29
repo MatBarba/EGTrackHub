@@ -1,0 +1,108 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use autodie;
+
+use Test::More;
+use Test::Exception;
+use Test::File;
+use File::Temp;
+use File::Spec;
+use Data::Dumper;
+use Perl6::Slurp qw(slurp);
+
+# checks if the modules can load
+use_ok('EGTrackHubs::TrackHubDB::Genome');
+
+# Prepare dummy data
+my %ex = (
+  id  => 'genome_id_1',
+);
+my %tr = (
+  id          => 'track_1',
+  short_label => 'track_title_1',
+  long_label  => 'Description of track 1',
+  type        => 'bigwig',
+  url         => 'ftp://example.com/track1.bw',
+);
+my $expected_trackdb_text = "track $tr{id}
+shortLabel $tr{short_label}
+longLabel $tr{long_label}
+type $tr{type}
+bigDataUrl $tr{url}
+";
+
+# Test creation of a Genome
+throws_ok {
+  my $gen = EGTrackHubs::TrackHubDB::Genome->new();
+  } 'Moose::Exception::AttributeIsRequired',
+  "Creating a Genome object without any parameters should fail";
+
+ok (
+  my $gen = EGTrackHubs::TrackHubDB::Genome->new(%ex),
+  "Creating a Genome object with all required fields"
+);
+isa_ok(
+  $gen,
+  'EGTrackHubs::TrackHubDB::Genome',
+  'Right object created'
+);
+cmp_ok(
+  $gen->id, 'eq', $ex{id},
+  "Correct id"
+);
+
+# Create directory for trackdb files
+
+dies_ok {
+  $gen->make_genome_dir
+  }  "Create genome dir without defined dir should fail";
+
+# Create genome dir
+my $tmp_dir = File::Temp->newdir;
+ok(
+  $gen->hub_dir($tmp_dir . ''),
+  "Set directory to $tmp_dir"
+);
+ok(
+  $gen->make_genome_dir,
+  "Create genome dir with defined dir"
+);
+
+my $genome_dir_path = File::Spec->catfile(
+  $gen->hub_dir,
+  $gen->id
+);
+ok(
+  -d $genome_dir_path,
+  "Genome dir created"
+);
+
+# Now create the trackDB file
+dies_ok {
+  $gen->make_trackdb_file;
+}  "Create trackdb file without tracks should die";
+
+# Add a track and create the file
+#ok(
+#  not $gen->add_track(),
+#  "Adding undef track should fail (but not die)"
+#);
+
+ok(
+  my $track = EGTrackHubs::TrackHubDB::Track->new( %tr ),
+  "Create 1 generic track"
+);
+
+ok(
+  $gen->add_track( $track ),
+  "Add 1 generic track"
+);
+
+ok(
+  $gen->make_trackdb_file,
+  "Create trackdb file with 1 generic track"
+);
+
+done_testing();
+

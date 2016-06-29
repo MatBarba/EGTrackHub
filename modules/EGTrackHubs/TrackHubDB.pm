@@ -202,7 +202,7 @@ sub make_genomes_dirs {
   
   for my $genome_id (keys %{ $self->genomes }) {
     my $genome = $self->genomes->{ $genome_id };
-    $genome->make_dir;
+    $genome->make_genome_dir;
   }
   return 1;
 }
