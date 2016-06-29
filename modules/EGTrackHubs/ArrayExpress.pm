@@ -55,7 +55,7 @@ sub get_runs_json_for_study {
 # Return all studies with status "Complete"
 sub get_completed_study_ids_for_plants
 {
-    my ($plant_names_href_EG, $limit) = @_;
+    my ($plant_names_href_EG) = @_;
 
     my %study_ids;
     
@@ -64,7 +64,6 @@ sub get_completed_study_ids_for_plants
 
     my $n = 0;
     foreach my $plant_name ( keys %{$plant_names_href_EG} ) {
-        last if (defined $limit and $n > $limit);
         my $biorep_url = $get_runs_by_organism_endpoint . $plant_name;
         my $biorep_stanza_json = EGTrackHubs::JsonResponse::get_Json_response($biorep_url);
 

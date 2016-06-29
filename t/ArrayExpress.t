@@ -44,7 +44,7 @@ cmp_ok(scalar keys (%$plant_names_AE_href), 'gt', 30 , "Number of plants complet
 
 #test8
 # Limit to the first 10 alignments (too long otherwise)
-my $study_ids_href=EGTrackHubs::ArrayExpress::get_completed_study_ids_for_plants($eg_plant_names_href, 3);
+my $study_ids_href = EGTrackHubs::ArrayExpress::get_completed_study_ids_for_plants($eg_plant_names_href);
 cmp_ok(scalar keys (%$study_ids_href), 'gt', 0, "Several cram alignments are completed");
 
 # -----
