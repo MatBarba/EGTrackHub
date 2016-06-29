@@ -110,6 +110,7 @@ sub create_files {
   $self->make_hub_file();
   $self->make_genomes_file();
   $self->make_genomes_dirs();
+  $self->make_trackdb_files();
   return 1;
 }
 
@@ -202,6 +203,16 @@ sub make_genomes_dirs {
   for my $genome_id (keys %{ $self->genomes }) {
     my $genome = $self->genomes->{ $genome_id };
     $genome->make_dir;
+  }
+  return 1;
+}
+
+sub make_trackdb_files {
+  my $self = shift;
+  
+  for my $genome_id (keys %{ $self->genomes }) {
+    my $genome = $self->genomes->{ $genome_id };
+    $genome->make_trackdb_file;
   }
   return 1;
 }

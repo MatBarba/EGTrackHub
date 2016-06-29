@@ -39,6 +39,15 @@ sub to_string {
   return $self->id;
 }
 
+sub trackdb_text {
+  my ($self) = @_;
+  
+  my @lines;
+  
+  push @lines, "track\t" . $self->id;
+  
+  return join("\n", @lines) . "\n";
+}
 
 __PACKAGE__->meta->make_immutable;
 1;

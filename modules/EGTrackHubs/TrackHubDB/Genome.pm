@@ -9,7 +9,7 @@ $Carp::Verbose = 1;
 use Moose;
 use namespace::autoclean;
 
-use EGTrackHubs::TrackHubDB::TrackDB;
+use EGTrackHubs::TrackHubDB::Track;
 
 # Attributes
 has id => (
@@ -36,9 +36,10 @@ has trackdb_file => (
   default => 'trackdb.txt',
 );
 
-has trackdbs => (
+has tracks => (
   is      => 'rw',
   isa     => 'HashRef[EGTrackHubs::TrackHubDB::Track]',
+  default => sub { {} },
 );
 
 sub hub_dir {
@@ -123,17 +124,29 @@ sub make_trackdb_file {
   my $self = shift;
   
   # Init file
-  my $trackdb_file = $self->dir . '/' . $self->trackdb_file;
+  my $trackdb_file = File::Spec->catfile(
+    $self->genome_dir,
+    $self->trackdb_file
+  );
   open(my $trackdb_fh, '>', $trackdb_file);
-  
-  # Add each track inside
-  foreach my $track (@{ $self->trackdbs }) {
-    print $trackdb_fh $track;
-  }
-  
+  print $trackdb_fh $self->trackdb_file_content;
   close $trackdb_fh;
+  return 1;
 }
 
+sub trackdb_file_content {
+  my $self = shift;
+  
+  croak "Can't create trackdb content without tracks" if not keys %{ $self->tracks };
+  
+  my @track_lines;
+  foreach my $track_id (keys %{ $self->tracks }) {
+    my $track = $self->tracks->{ $track_id };
+    push @track_lines, $track->trackdb_text;
+  }
+  
+  return join("\n\n", @track_lines);
+}
 
 __PACKAGE__->meta->make_immutable;
 1;

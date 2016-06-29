@@ -14,6 +14,7 @@ use Perl6::Slurp qw(slurp);
 # checks if the modules can load
 use_ok('EGTrackHubs::TrackHubDB');
 use_ok('EGTrackHubs::TrackHubDB::Genome');
+use_ok('EGTrackHubs::TrackHubDB::Track');
 
 # Prepare dummy data
 my %ex = (
@@ -134,6 +135,29 @@ ok (
 ok (
    $th->make_genomes_dirs,
   "Create genomes dirs",
+);
+
+# Make the trackdb files
+dies_ok {
+  $th->make_trackdb_files;
+}  "Creating trackdb files without tracks should fail";
+
+# Add a track to the genome
+my %track_sample = (
+  id          => 'track_id_1',
+  short_label => 'track_title_1',
+  long_label  => 'Description of the track 1',
+  type        => 'bigwig',
+  url         => 'ftp://example.com/track1.bw',
+);
+my $track   = EGTrackHubs::TrackHubDB::Track->new( %track_sample );
+$genome->add_track($track);
+
+my $ret = $th->make_trackdb_files;
+
+ok(
+  $th->make_trackdb_files,
+  "Creating trackdb files with 1 track"
 );
 
 done_testing();
