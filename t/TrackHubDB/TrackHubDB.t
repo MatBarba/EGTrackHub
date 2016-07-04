@@ -143,14 +143,14 @@ dies_ok {
 }  "Creating trackdb files without tracks should fail";
 
 # Add a track to the genome
-my %track_sample = (
-  id          => 'track_id_1',
-  short_label => 'track_title_1',
-  long_label  => 'Description of the track 1',
-  type        => 'bigwig',
-  url         => 'ftp://example.com/track1.bw',
+my %tr = (
+  track      => 'track_1',
+  shortLabel => 'track_title_1',
+  longLabel  => 'Description of track 1',
+  type       => 'bigwig',
+  bigDataUrl => 'ftp://example.com/track1.bw',
 );
-my $track   = EGTrackHubs::TrackHubDB::Track->new( %track_sample );
+my $track   = EGTrackHubs::TrackHubDB::Track->new( %tr );
 $genome->add_track($track);
 
 my $ret = $th->make_trackdb_files;

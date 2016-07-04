@@ -121,7 +121,7 @@ sub add_track {
     carp "Warning: no track given to add to the genome";
     return;
   }
-  $self->tracks->{ $track->id } = $track;
+  $self->tracks->{ $track->track } = $track;
   return 1;
 }
 
@@ -147,7 +147,7 @@ sub trackdb_file_content {
   my @track_lines;
   foreach my $track_id (keys %{ $self->tracks }) {
     my $track = $self->tracks->{ $track_id };
-    push @track_lines, $track->trackdb_text;
+    push @track_lines, $track->to_string;
   }
   
   return join("\n\n", @track_lines);

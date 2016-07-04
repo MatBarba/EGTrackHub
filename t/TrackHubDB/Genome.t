@@ -19,17 +19,17 @@ my %ex = (
   id  => 'genome_id_1',
 );
 my %tr = (
-  id          => 'track_1',
-  short_label => 'track_title_1',
-  long_label  => 'Description of track 1',
-  type        => 'bigwig',
-  url         => 'ftp://example.com/track1.bw',
+  track      => 'track_1',
+  shortLabel => 'track_title_1',
+  longLabel  => 'Description of track 1',
+  type       => 'bigwig',
+  bigDataUrl => 'ftp://example.com/track1.bw',
 );
-my $expected_trackdb_text = "track $tr{id}
-shortLabel $tr{short_label}
-longLabel $tr{long_label}
+my $expected_trackdb_text = "track $tr{track}
+shortLabel $tr{shortLabel}
+longLabel $tr{longLabel}
 type $tr{type}
-bigDataUrl $tr{url}
+bigDataUrl $tr{bigDataUrl}
 ";
 
 # Test creation of a Genome
