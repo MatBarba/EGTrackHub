@@ -27,6 +27,7 @@ type $tr{type}
 shortLabel $tr{shortLabel}
 longLabel $tr{longLabel}
 bigDataUrl $tr{bigDataUrl}
+visibility hide
 ";
 
 

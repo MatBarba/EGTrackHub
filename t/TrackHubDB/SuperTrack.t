@@ -42,6 +42,7 @@ type $sub{type}
 shortLabel $sub{shortLabel}
 longLabel $sub{longLabel}
 bigDataUrl $sub{bigDataUrl}
+visibility hide
 ";
 my $expected_trackdb_text = $expected_super_text . "\n" . $expected_sub_text . "parent $sub{parent}\n";
 

@@ -17,34 +17,21 @@ has track => (
   required  => 1,
 );
 
-has type => (
-  is     => 'ro',
-  isa    => 'Str',
-);
-
-has shortLabel => (
-  is     => 'ro',
-  isa    => 'Str',
-);
-
-has longLabel => (
-  is     => 'ro',
-  isa    => 'Str',
-);
-
-has bigDataUrl => (
-  is     => 'ro',
-  isa    => 'Str',
-);
-
-has html => (
+has [qw(
+  type
+  shortLabel
+  longLabel
+  bigDataUrl
+  html
+  )] => (
   is     => 'rw',
   isa    => 'Str',
 );
 
 has visibility => (
-  is     => 'rw',
-  isa    => 'Str',
+  is      => 'rw',
+  isa     => 'Str|Undef',
+  default => 'hide',
 );
 
 my @order = qw(

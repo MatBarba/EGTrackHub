@@ -12,6 +12,10 @@ use EGTrackHubs::TrackHubDB::SubTrack;
 use namespace::autoclean;
 
 # Attributes
+has '+visibility' => (
+  default => undef,
+);
+
 has sub_tracks => (
   is       => 'rw',
   isa      => 'ArrayRef[EGTrackHubs::TrackHubDB::Track]',
