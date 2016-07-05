@@ -9,8 +9,8 @@ use POSIX qw(strftime); # to get GMT time stamp
 use EGTrackHubs::ENA;
 use EGTrackHubs::EG;
 use EGTrackHubs::AEStudy;
-use EGTrackHubs::SubTrack;
-use EGTrackHubs::SuperTrack;
+use EGTrackHubs::TrackHubDB::SubTrack;
+use EGTrackHubs::TrackHubDB::SuperTrack;
 
 my $meta_keys_aref = EGTrackHubs::ENA::get_all_sample_keys(); # array ref that has all the keys for the ENA warehouse metadata
 
@@ -197,7 +197,7 @@ sub make_trackDbtxt_file{
       return 0;
     }
 
-    $super_track_obj->print_track_stanza($fh);
+    print $fh $super_track_obj->to_string;
 
     my $visibility="off";
 
@@ -205,9 +205,9 @@ sub make_trackDbtxt_file{
 
       $counter_of_tracks++;
       if ($counter_of_tracks <=10){
-        $visibility = "on";
+        $visibility = "pack";
       }else{
-        $visibility = "off";
+        $visibility = "hide";
       }
 
       my $track_obj = $self->make_biosample_sub_track_obj($study_obj,$biorep_id,$sample_id,$visibility);
@@ -215,13 +215,12 @@ sub make_trackDbtxt_file{
       if(!$track_obj){ # this is in case there is a run id from AE that is not yet in ENA, then I want to skip doing this track, this method returns 0 if this is the case
         next;
       }
-      if($track_obj eq "no cram in ENA"){
+      if(ref($track_obj) eq '' and $track_obj eq "no cram in ENA"){
 
         return "at least 1 cram file of the TH that was not found in ENA";
       }
-
-      $track_obj->print_track_stanza($fh);
-
+      
+      print $fh $track_obj->to_string;
     }
   }
   close $fh;
@@ -321,7 +320,12 @@ sub make_biosample_super_track_obj{
     $metadata_string = $metadata_string." " . join(" ",@meta_pairs);
   }
 
-  my $super_track_obj = EGTrackHubs::SuperTrack->new($sample_id,$long_label,$metadata_string);
+  my $super_track_obj = EGTrackHubs::TrackHubDB::SuperTrack->new(
+    track => $sample_id,
+    longLabel => $long_label,
+    # Metadata is deprecated
+    #$metadata_string
+  );
   return $super_track_obj;
 }
 
@@ -381,7 +385,15 @@ sub make_biosample_sub_track_obj{
   }
 
   my $file_type = EGTrackHubs::ENA::give_big_data_file_type($big_data_url);
-  my $track_obj = EGTrackHubs::SubTrack->new($biorep_id,$parent_id,$big_data_url,$short_label_ENA,$long_label_ENA,$file_type,$visibility);
+  my $track_obj = EGTrackHubs::TrackHubDB::SubTrack->new(
+    track      => $biorep_id,
+    parent     => $parent_id,
+    bigDataUrl => $big_data_url,
+    shortLabel => $short_label_ENA,
+    longLabel  => $long_label_ENA,
+    type       => $file_type,
+    visibility => $visibility
+  );
   return $track_obj;
 
 }

@@ -72,7 +72,7 @@ file_contains_like($genome_file, $genome_format, "content of file genomes.txt is
 # test make_trackDbtxt_file method
 # -----
 my $trackdb_file   = "$study_dir/$assembly_id/trackDb.txt";
-my $trackdb_format = qr/^track.+\nsuperTrack on show\n+/;
+my $trackdb_format = qr/^track.+\nlongLabel .+\nsuperTrack on show\n+/;
 
 my $return = $trackHubCreator_obj->make_trackDbtxt_file($tmpdir, $study_obj, $assembly_id);
 file_exists_ok($trackdb_file, "The file trackDb.txt was created");
@@ -130,9 +130,9 @@ my $expected_long_label = "Total mRNAs from callus, leaf, panicle before floweri
 my $expected_metadata_pattern =  qr/".+BST" biosample_id=SAMD00008650 germline=N description=\"Total mRNAs from callus, leaf, panicle before flowering, panicle after flowering, root, seed, and shoot of rice \(Oryza sativa ssp. Japonica cv. Nipponbare\)\" accession=SAMD00008650 environmental_sample=N scientific_name=\"Oryza sativa Japonica Group\" sample_alias=SAMD00008650 tax_id=39947 center_name=BIOSAMPLE secondary_sample_accession=DRS000668 first_public=2011-12-21/;
 
 my $super_track_obj = $trackHubCreator_obj->make_biosample_super_track_obj($sample_id);
-is($super_track_obj->{track_name}, $sample_id ,                "super track name is as expected");
-is($super_track_obj->{long_label}, $expected_long_label,       "super track long label is as expected");
-like($super_track_obj->{metadata}, $expected_metadata_pattern, "super track metadata string is as expected");
+is($super_track_obj->track, $sample_id ,                "super track name is as expected");
+is($super_track_obj->longLabel, $expected_long_label,       "super track long label is as expected");
+#like($super_track_obj->{metadata}, $expected_metadata_pattern, "super track metadata string is as expected");
 
 # -----
 # test make_biosample_sub_track_obj method
@@ -148,13 +148,13 @@ my $sub_track_obj = $trackHubCreator_obj->make_biosample_sub_track_obj(
   $sample_id,
   "on"
 );
-is($sub_track_obj->{track_name},   $biorep_id,                 "sub track name is as expected");
-is($sub_track_obj->{parent_name},  $sample_id,                 "sub track parent name is as expected");
-is($sub_track_obj->{big_data_url}, $expected_data_url,         "sub track cram url location is as expected");
-is($sub_track_obj->{short_label},  $expected_short_label,      "sub track short label is as expected");
-is($sub_track_obj->{long_label},   $expected_track_long_label, "sub track long label is as expected");
-is($sub_track_obj->{file_type},    $expected_file_type,        "sub track file type is as expected");
-is($sub_track_obj->{visibility},   $expected_visibility,       "sub track visibility is as expected");
+is($sub_track_obj->track,      $biorep_id,                 "sub track name is as expected");
+is($sub_track_obj->parent,     $sample_id,                 "sub track parent name is as expected");
+is($sub_track_obj->bigDataUrl, $expected_data_url,         "sub track cram url location is as expected");
+is($sub_track_obj->shortLabel, $expected_short_label,      "sub track short label is as expected");
+is($sub_track_obj->longLabel,  $expected_track_long_label, "sub track long label is as expected");
+is($sub_track_obj->type,       $expected_file_type,        "sub track file type is as expected");
+is($sub_track_obj->visibility, $expected_visibility,       "sub track visibility is as expected");
 
 done_testing();
 
