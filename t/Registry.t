@@ -8,26 +8,26 @@ use Test::Exception;
 
 use Capture::Tiny ':all';
 use Time::Piece;
-use EGTrackHubs::AEStudy;
+use EGTH::AEStudy;
 
 # -----
 # checks if the module can load
 # -----
 
 #test1
-use_ok('EGTrackHubs::Registry');  
+use_ok('EGTH::Registry');  
 
 # -----
 # test constructor
 # -----
 
-my $registry_obj = EGTrackHubs::Registry->new("testing" ,"testing" );
+my $registry_obj = EGTH::Registry->new("testing" ,"testing" );
 
 # test2
-isa_ok($registry_obj,'EGTrackHubs::Registry','checks whether the object constructed is of my class type');
+isa_ok($registry_obj,'EGTH::Registry','checks whether the object constructed is of my class type');
 
 # test3
-dies_ok(sub{EGTrackHubs::Registry->new("blabla")},'checks if wrong object construction of my class dies');
+dies_ok(sub{EGTH::Registry->new("blabla")},'checks if wrong object construction of my class dies');
 
 # -----
 # test register_track_hub method
@@ -159,8 +159,8 @@ my ($stdout10, $stderr10, $bioreps_hash_ref) = capture {
 is(ref($bioreps_hash_ref), 'HASH', 'The method returns a hash ref');
 
 #test17
-my $plant_names_AE_response_href = EGTrackHubs::ArrayExpress::get_plant_names_AE_API();
-my $study_obj = EGTrackHubs::AEStudy->new("SRP045759",$plant_names_AE_response_href);
+my $plant_names_AE_response_href = EGTH::ArrayExpress::get_plant_names_AE_API();
+my $study_obj = EGTH::AEStudy->new("SRP045759",$plant_names_AE_response_href);
 
 my $biorep_ids_from_AE_href= $study_obj->get_biorep_ids();
 

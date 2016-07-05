@@ -1,4 +1,4 @@
-package EGTrackHubs::ENA;
+package EGTH::ENA;
 
 use strict;
 use warnings;

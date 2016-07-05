@@ -12,9 +12,9 @@ use Data::Dumper;
 use Perl6::Slurp qw(slurp);
 
 # checks if the modules can load
-use_ok('EGTrackHubs::TrackHubDB');
-use_ok('EGTrackHubs::TrackHubDB::Genome');
-use_ok('EGTrackHubs::TrackHubDB::Track');
+use_ok('EGTH::TrackHub');
+use_ok('EGTH::TrackHub::Genome');
+use_ok('EGTH::TrackHub::Track');
 
 # Prepare dummy data
 my %ex = (
@@ -34,17 +34,17 @@ descriptionUrl $ex{descriptionUrl}
 
 # Test creation of a TrackhubDB
 throws_ok {
-  my $th = EGTrackHubs::TrackHubDB->new();
+  my $th = EGTH::TrackHub->new();
   } 'Moose::Exception::AttributeIsRequired',
   "Creating a Trackhub object without any parameters should fail";
 
 ok (
-  my $th = EGTrackHubs::TrackHubDB->new(%ex),
+  my $th = EGTH::TrackHub->new(%ex),
   "Creating a Trackhub object with all required fields"
 );
 isa_ok(
   $th,
-  'EGTrackHubs::TrackHubDB',
+  'EGTH::TrackHub',
   'Right object created'
 );
 cmp_ok(
@@ -105,7 +105,7 @@ my %genome_sample = (
   id  => 'genome_1',
 );
 ok(
-  my $genome = EGTrackHubs::TrackHubDB::Genome->new(%genome_sample),
+  my $genome = EGTH::TrackHub::Genome->new(%genome_sample),
   "Create a genome"
 );
 ok(
@@ -145,7 +145,7 @@ my %tr = (
   type       => 'bigwig',
   bigDataUrl => 'ftp://example.com/track1.bw',
 );
-my $track   = EGTrackHubs::TrackHubDB::Track->new( %tr );
+my $track   = EGTH::TrackHub::Track->new( %tr );
 $genome->add_track($track);
 
 my $ret = $th->make_trackdb_files;

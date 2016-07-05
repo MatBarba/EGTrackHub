@@ -12,7 +12,7 @@ use File::Temp;
 # -----
 # checks if the modules can load
 # -----
-use_ok('EGTrackHubs::PlantTrackHubDB');
+use_ok('EGTH::PlantTrackHub');
 
 # -----
 # test constructor
@@ -22,12 +22,12 @@ my $study_id  = "DRP000391";
 my $plant_names = { 'oryza_sativa' => 1 };
 my $email     = 'example@example.com';
 
-ok(my $plant_trackhub = EGTrackHubs::PlantTrackHubDB->new(
+ok(my $plant_trackhub = EGTH::PlantTrackHub->new(
   id       => $study_id,
   email    => $email,
 ), "Creating a plant trackhub object with correct attributes");
 
-isa_ok($plant_trackhub, 'EGTrackHubs::PlantTrackHubDB', 'the object constructed is of my class type');
+isa_ok($plant_trackhub, 'EGTH::PlantTrackHub', 'the object constructed is of my class type');
 
 # Create the files in a temp dir
 dies_ok {

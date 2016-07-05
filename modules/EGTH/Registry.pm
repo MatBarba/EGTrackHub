@@ -1,4 +1,4 @@
-package EGTrackHubs::Registry;
+package EGTH::Registry;
 
 use strict;
 use warnings;

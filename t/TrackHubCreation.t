@@ -12,8 +12,8 @@ use File::Temp;
 # -----
 # checks if the modules can load
 # -----
-use_ok('EGTrackHubs::TrackHubCreation');
-use_ok('EGTrackHubs::ArrayExpress');
+use_ok('EGTH::TrackHubCreation');
+use_ok('EGTH::ArrayExpress');
 
 # -----
 # test constructor
@@ -23,17 +23,17 @@ my $study_id  = "DRP000391";
 my $tmpdir    = File::Temp->newdir();
 my $study_dir = "$tmpdir/$study_id";
 
-my $trackHubCreator_obj = EGTrackHubs::TrackHubCreation->new($study_id, $tmpdir);
+my $trackHubCreator_obj = EGTH::TrackHubCreation->new($study_id, $tmpdir);
 
-isa_ok($trackHubCreator_obj, 'EGTrackHubs::TrackHubCreation', 'the object constructed is of my class type');
-dies_ok(sub{EGTrackHubs::TrackHubCreation->new($study_dir)},'Construction from wrong object should die');
+isa_ok($trackHubCreator_obj, 'EGTH::TrackHubCreation', 'the object constructed is of my class type');
+dies_ok(sub{EGTH::TrackHubCreation->new($study_dir)},'Construction from wrong object should die');
 
 # -----
 # test make_study_dir method
 # -----
 
-my $plant_names_response_href= EGTrackHubs::ArrayExpress::get_plant_names_AE_API();
-my $study_obj = EGTrackHubs::AEStudy->new($study_id, $plant_names_response_href);
+my $plant_names_response_href= EGTH::ArrayExpress::get_plant_names_AE_API();
+my $study_obj = EGTH::AEStudy->new($study_id, $plant_names_response_href);
 
 $trackHubCreator_obj->make_study_dir($tmpdir,$study_obj);
 dir_exists_ok( "$study_dir" , "Check that the directory exists" );
@@ -53,7 +53,7 @@ dir_exists_ok( $assembly_dir , "Check that the assembly directory exists" );
 my $hub_file   = "$study_dir/hub.txt";
 my $hub_format = qr/^hub\s$study_id\nshortLabel.+\nlongLabel.+\ngenomesFile\sgenomes.txt\nemail\s.+\n/;
 
-my $return1 = EGTrackHubs::TrackHubCreation->make_hubtxt_file($tmpdir, $study_obj);
+my $return1 = EGTH::TrackHubCreation->make_hubtxt_file($tmpdir, $study_obj);
 file_exists_ok($hub_file, "The file hub.txt was created");
 file_contains_like( $hub_file, $hub_format, "content of file hub.txt is as expected" );
 
@@ -72,7 +72,7 @@ file_contains_like($genome_file, $genome_format, "content of file genomes.txt is
 # test make_trackDbtxt_file method
 # -----
 my $trackdb_file   = "$study_dir/$assembly_id/trackDb.txt";
-my $trackdb_format = qr/^track.+\nlongLabel .+\nsuperTrack on show\n+/;
+my $trackdb_format = qr/^track.+\nshortLabel .+\nlongLabel .+\nsuperTrack on show\n+/;
 
 my $return = $trackHubCreator_obj->make_trackDbtxt_file($tmpdir, $study_obj, $assembly_id);
 file_exists_ok($trackdb_file, "The file trackDb.txt was created");
@@ -84,16 +84,16 @@ file_contains_like($trackdb_file, $trackdb_format, "content of file trackDb.txt 
 # -----
 
 {
-  my $new_label = EGTrackHubs::TrackHubCreation::printlabel_key("electra tapanari");
+  my $new_label = EGTH::TrackHubCreation::printlabel_key("electra tapanari");
   is($new_label,"electra_tapanari", 'replace string 1 underscore by 1 space in string');
 
-  $new_label = EGTrackHubs::TrackHubCreation::printlabel_key("electra_tapanari");
+  $new_label = EGTH::TrackHubCreation::printlabel_key("electra_tapanari");
   is($new_label, "electra_tapanari", 'no change in string with underscore and no space');
 
-  $new_label=EGTrackHubs::TrackHubCreation::printlabel_key("electra");
+  $new_label=EGTH::TrackHubCreation::printlabel_key("electra");
   is($new_label,"electra", 'no change in string with no underscore or space');
 
-  $new_label=EGTrackHubs::TrackHubCreation::printlabel_key("electra tapanari of angelos");
+  $new_label=EGTH::TrackHubCreation::printlabel_key("electra tapanari of angelos");
   is($new_label, "electra_tapanari_of_angelos", 'replace all spaces with underscores in string');
 }
 
@@ -101,13 +101,13 @@ file_contains_like($trackdb_file, $trackdb_format, "content of file trackDb.txt 
 # test printlabel_value method
 # -----
 {
-  my $new_label = EGTrackHubs::TrackHubCreation::printlabel_value("electra tapanari");
+  my $new_label = EGTH::TrackHubCreation::printlabel_value("electra tapanari");
   is($new_label,"\"electra tapanari\"",'put quotes to string with 1 space');
 
-  $new_label=EGTrackHubs::TrackHubCreation::printlabel_value("electra");
+  $new_label=EGTH::TrackHubCreation::printlabel_value("electra");
   is($new_label,"electra", "don't put quotes to string without space");
 
-  $new_label=EGTrackHubs::TrackHubCreation::printlabel_value("electra tapanari of angelos");
+  $new_label=EGTH::TrackHubCreation::printlabel_value("electra tapanari of angelos");
   is($new_label,"\"electra tapanari of angelos\"", "put quotes to string with several spaces");
 }
 
@@ -118,7 +118,7 @@ my $biorep_id            = "E-MTAB-2037.biorep4";
 my $expected_short_label = "ArrayExpress:E-MTAB-2037.biorep4";
 my $expected_title       = "Illumina Genome Analyzer IIx sequencing; Illumina sequencing of cDNAs generated from mRNAs_retro_PAAF";
 
-my $ena_biorep_title = EGTrackHubs::TrackHubCreation::get_ENA_biorep_title($study_obj, $biorep_id);
+my $ena_biorep_title = EGTH::TrackHubCreation::get_ENA_biorep_title($study_obj, $biorep_id);
 is($ena_biorep_title, $expected_title, "ENA biorep title as expected currently") ;
 
 # -----

@@ -1,11 +1,11 @@
-package EGTrackHubs::EG;
+package EGTH::EG;
 
 # this module is written in order to have a method that returns the right assembly name in the cases where AE gives the assembly accession instead of the assembly name (due to our bug)
 
 use strict ;
 use warnings;
 
-use EGTrackHubs::JsonResponse;
+use EGTH::JsonResponse;
 
 my $ens_genomes_plants_call = "http://rest.ensemblgenomes.org/info/genomes/division/EnsemblPlants?content-type=application/json"; # to get all ensembl plants names currently
 
@@ -42,7 +42,7 @@ sub load_EG_plants {
 
   my @array_response_plants_assemblies; 
 
-  my $array_response_plants_assemblies = EGTrackHubs::JsonResponse::get_Json_response($ens_genomes_plants_call);  
+  my $array_response_plants_assemblies = EGTH::JsonResponse::get_Json_response($ens_genomes_plants_call);  
 
   # response:
   #[{"base_count":"479985347","is_reference":null,"division":"EnsemblPlants","has_peptide_compara":"1","dbname":"physcomitrella_patens_core_28_81_11","genebuild":"2011-03-JGI","assembly_level":"scaffold","serotype":null,

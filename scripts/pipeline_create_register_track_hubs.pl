@@ -23,11 +23,11 @@ use Data::Dumper;
 
 use FindBin;
 use lib $FindBin::Bin . '/../modules';
-use EGTrackHubs::Registry;
-use EGTrackHubs::TrackHubCreation;
-use EGTrackHubs::ENA;
-use EGTrackHubs::ArrayExpress;
-use EGTrackHubs::AEStudy;
+use EGTH::Registry;
+use EGTH::TrackHubCreation;
+use EGTH::ENA;
+use EGTH::ArrayExpress;
+use EGTH::AEStudy;
 
 my $registry_user_name = $ENV{'THR_USER'}; 
 my $registry_pwd = $ENV{'THR_PWD'};
@@ -55,7 +55,7 @@ my $start_run = time();
 
  print_calling_params_logging($registry_user_name , $registry_pwd , $server_dir_full_path , $server_url, $track_hub_visibility, $from_scratch);
 
-  my $registry_obj = EGTrackHubs::Registry->new($registry_user_name, $registry_pwd, $track_hub_visibility);
+  my $registry_obj = EGTH::Registry->new($registry_user_name, $registry_pwd, $track_hub_visibility);
 
   if (! -d $server_dir_full_path) {  # if the directory that the user defined to write the files of the track hubs doesnt exist, I try to make it
 
@@ -66,7 +66,7 @@ my $start_run = time();
 
   my $unsuccessful_studies_href;
 
-  my $plant_names_AE_response_href = EGTrackHubs::ArrayExpress::get_plant_names_AE_API();
+  my $plant_names_AE_response_href = EGTH::ArrayExpress::get_plant_names_AE_API();
 
   if($plant_names_AE_response_href == 0){
 
@@ -75,7 +75,7 @@ my $start_run = time();
 
   my $study_ids_href_AE = get_list_of_all_AE_plant_studies_currently(); #  gets all Array Express current plant study ids
 
-  my $organism_assmblAccession_EG_href = EGTrackHubs::EG::get_species_name_assembly_id_hash(); #$hash{"brachypodium_distachyon"} = "GCA_000005505.1"         also:  $hash{"oryza_rufipogon"} = "0000"
+  my $organism_assmblAccession_EG_href = EGTH::EG::get_species_name_assembly_id_hash(); #$hash{"brachypodium_distachyon"} = "GCA_000005505.1"         also:  $hash{"oryza_rufipogon"} = "0000"
   
   if ($from_scratch){
 
@@ -182,7 +182,7 @@ sub update_common_studies{
 
   foreach my $study_id (keys %common_studies_to_be_updated){
 
-    my $study_obj = EGTrackHubs::AEStudy->new($study_id,$plant_names_AE_response_href);
+    my $study_obj = EGTH::AEStudy->new($study_id,$plant_names_AE_response_href);
 
     my $sample_ids_href = $study_obj->get_sample_ids();
     if(!$sample_ids_href){  # there are cases where the AE API returns a study with the the sample_ids field to be null , I want to skip these studies
@@ -256,7 +256,7 @@ sub create_new_studies_in_incremental_update{
     if(-d $study_dir){
       remove_tree $study_dir;
     }
-    my $study_obj = EGTrackHubs::AEStudy->new($study_id,$plant_names_AE_response_href);
+    my $study_obj = EGTH::AEStudy->new($study_id,$plant_names_AE_response_href);
 
     my $sample_ids_href = $study_obj->get_sample_ids();
     if(!$sample_ids_href){  # there are cases where the AE API returns a study with the the sample_ids field to be null , I want to skip these studies
@@ -344,7 +344,7 @@ sub get_study_ids_to_be_updated{ # gets a list of common study ids and decides w
 
   foreach my $common_study_id (@$common_study_ids_array_ref){ 
 
-    my $study_obj = EGTrackHubs::AEStudy->new($common_study_id,$plant_names_AE_response_href);
+    my $study_obj = EGTH::AEStudy->new($common_study_id,$plant_names_AE_response_href);
 
     my $AE_last_processed_unix_time = $study_obj->get_AE_last_processed_unix_date; # AE current response: the unix date of the creation the cram of the study (gives me the max date of all bioreps of the study)
     my $registry_study_created_date_unix_time = eval { $registry_obj->get_Registry_hub_last_update($common_study_id) }; # date of registration of the study
@@ -474,7 +474,7 @@ sub print_registered_TH_in_THR_stats_after_pipeline_is_run{
       foreach my $study_id (keys %{$unsuccessful_studies_href->{$reason}}){
 
         $count_skipped_studies++;
-        my $study_obj = EGTrackHubs::AEStudy->new($study_id,$plant_names_AE_response_href);
+        my $study_obj = EGTH::AEStudy->new($study_id,$plant_names_AE_response_href);
         my %bioreps_hash = %{$study_obj->get_biorep_ids};
         print $count_skipped_studies. ". ". $study_id. " (".scalar (keys %bioreps_hash)." bioreps)\t$reason\n";
       }
@@ -523,7 +523,7 @@ sub run_pipeline_from_scratch_with_logging{
 
   foreach my $study_id (keys %{$study_ids_href_AE}){
 
-    my $study_obj = EGTrackHubs::AEStudy->new($study_id,$plant_names_AE_response_href);
+    my $study_obj = EGTH::AEStudy->new($study_id,$plant_names_AE_response_href);
 
     my $sample_ids_href = $study_obj->get_sample_ids();
     if(!$sample_ids_href){  # there are cases where the AE API returns a study with the the sample_ids field to be null , I want to skip these studies
@@ -562,7 +562,7 @@ sub give_hashes_with_AE_current_stats{
  
   foreach my $study_id (keys %{$study_ids_href_AE}){
 
-    my $study_obj = EGTrackHubs::AEStudy->new($study_id,$plant_names_AE_response_href );
+    my $study_obj = EGTH::AEStudy->new($study_id,$plant_names_AE_response_href );
 
     my %biorep_ids = %{$study_obj->get_biorep_ids};
 
@@ -669,9 +669,9 @@ sub print_registry_registered_number_of_th{
 
 sub get_list_of_all_AE_plant_studies_currently{
 
-  my $plant_names_href_EG = EGTrackHubs::EG::get_plant_names;
+  my $plant_names_href_EG = EGTH::EG::get_plant_names;
   
-  my $study_ids_href = EGTrackHubs::ArrayExpress::get_completed_study_ids_for_plants($plant_names_href_EG);
+  my $study_ids_href = EGTH::ArrayExpress::get_completed_study_ids_for_plants($plant_names_href_EG);
 
   return $study_ids_href;
 }
@@ -690,7 +690,7 @@ sub make_and_register_track_hub{
   my $study_id = $study_obj->id;
   print "$line_counter.\tcreating track hub for study $study_id\t"; 
 
-  my $track_hub_creator_obj = EGTrackHubs::TrackHubCreation->new($study_id,$server_dir_full_path);
+  my $track_hub_creator_obj = EGTH::TrackHubCreation->new($study_id,$server_dir_full_path);
   my $script_output = $track_hub_creator_obj->make_track_hub($plant_names_AE_response_href);
 
   print $script_output;

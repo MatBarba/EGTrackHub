@@ -1,4 +1,4 @@
-package EGTrackHubs::TrackHubDB::Track;
+package EGTH::TrackHub::Track;
 
 use strict;
 use warnings;

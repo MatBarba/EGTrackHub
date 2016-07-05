@@ -4,7 +4,7 @@ use warnings;
 
 use FindBin;
 use lib $FindBin::Bin . '/../modules';
-use EGTrackHubs::Registry;
+use EGTH::Registry;
 
 my $registry_user_name = $ENV{'THR_USER'}; 
 my $registry_pwd = $ENV{'THR_PWD'};

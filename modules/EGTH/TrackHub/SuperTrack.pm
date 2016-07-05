@@ -1,4 +1,4 @@
-package EGTrackHubs::TrackHubDB::SuperTrack;
+package EGTH::TrackHub::SuperTrack;
 
 use strict;
 use warnings;
@@ -7,8 +7,8 @@ use Carp;
 $Carp::Verbose = 1;
 
 use Moose;
-extends 'EGTrackHubs::TrackHubDB::Track';
-use EGTrackHubs::TrackHubDB::SubTrack;
+extends 'EGTH::TrackHub::Track';
+use EGTH::TrackHub::SubTrack;
 use namespace::autoclean;
 
 # Attributes
@@ -24,7 +24,7 @@ has show => (
 
 has sub_tracks => (
   is       => 'rw',
-  isa      => 'ArrayRef[EGTrackHubs::TrackHubDB::Track]',
+  isa      => 'ArrayRef[EGTH::TrackHub::Track]',
   default  => sub { [] },
 );
 
@@ -53,7 +53,7 @@ sub add_sub_track {
   $subtrack_data{ parent } = $self->track;
   
   # Create the subtrack object
-  my $subtrack = EGTrackHubs::TrackHubDB::SubTrack->new( %subtrack_data );
+  my $subtrack = EGTH::TrackHub::SubTrack->new( %subtrack_data );
   
   push @{ $self->sub_tracks }, $subtrack;
   

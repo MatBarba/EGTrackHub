@@ -1,4 +1,4 @@
-package EGTrackHubs::TrackHubDB::Genome;
+package EGTH::TrackHub::Genome;
 
 use strict;
 use warnings;
@@ -9,7 +9,7 @@ $Carp::Verbose = 1;
 use Moose;
 use namespace::autoclean;
 
-use EGTrackHubs::TrackHubDB::Track;
+use EGTH::TrackHub::Track;
 
 # Attributes
 has id => (
@@ -38,7 +38,7 @@ has trackdb_file => (
 
 has tracks => (
   is      => 'rw',
-  isa     => 'HashRef[EGTrackHubs::TrackHubDB::Track]',
+  isa     => 'HashRef[EGTH::TrackHub::Track]',
   default => sub { {} },
 );
 

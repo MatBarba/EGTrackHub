@@ -1,4 +1,4 @@
-package EGTrackHubs::PlantTrackHubDB;
+package EGTH::PlantTrackHub;
 
 use strict ;
 use warnings;
@@ -9,16 +9,16 @@ use Log::Log4perl qw( :easy );
 my $logger = get_logger();
 
 use Moose;
-extends 'EGTrackHubs::TrackHubDB';
+extends 'EGTH::TrackHub';
 use namespace::autoclean;
 
 use Getopt::Long; # to use the options when calling the script
 use POSIX qw(strftime); # to get GMT time stamp
-use EGTrackHubs::ENA;
-use EGTrackHubs::EG;
-use EGTrackHubs::AEStudy;
-use EGTrackHubs::TrackHubDB::SubTrack;
-use EGTrackHubs::TrackHubDB::SuperTrack;
+use EGTH::ENA;
+use EGTH::EG;
+use EGTH::AEStudy;
+use EGTH::TrackHub::SubTrack;
+use EGTH::TrackHub::SuperTrack;
 
 
 sub load_plant_data {
@@ -26,7 +26,7 @@ sub load_plant_data {
   my ($plant_names) = @_;
   
   $logger->info("Load study ". $self->id);
-  my $ae_study = EGTrackHubs::AEStudy->new($self->id, $plant_names);
+  my $ae_study = EGTH::AEStudy->new($self->id, $plant_names);
   $logger->info("Load data for the study");
   $self->_load_study($ae_study);
   
@@ -51,7 +51,7 @@ sub prepare_hub {
   $self->shortLabel("RNA-Seq alignment hub $study_id");
   
   # Long label: use study description
-  my $ena_study_title = EGTrackHubs::ENA::get_ENA_study_title($study_id);
+  my $ena_study_title = EGTH::ENA::get_ENA_study_title($study_id);
 
   if ($ena_study_title eq "not yet in ENA") {
     croak "Study is not yet in ENA: $study_id";
@@ -77,7 +77,7 @@ sub prepare_genomes {
   # Create genomes
   foreach my $assembly_name (keys %{$assembly_names_href}) {
     $logger->info("Assembly: $assembly_name");
-    my $genome = EGTrackHubs::TrackHubDB::Genome->new(
+    my $genome = EGTH::TrackHub::Genome->new(
       id      => $assembly_name,
       hub_dir => $self->hub_dir
     );
@@ -156,14 +156,14 @@ sub get_ENA_biorep_title{
   if(scalar @run_ids > 1){ # then it is a clustered biorep
     foreach my $run_id (@run_ids){
 
-      $run_titles{EGTrackHubs::ENA::get_ENA_title($run_id)} =1;  # I get all distinct run titles
+      $run_titles{EGTH::ENA::get_ENA_title($run_id)} =1;  # I get all distinct run titles
     }
     my @distinct_run_titles = keys (%run_titles);
     $biorep_title= join(" ; ",@distinct_run_titles); # the run titles are seperated by comma
 
     return $biorep_title;
   }else{  # the biorep_id is the same as a run_id
-    return EGTrackHubs::ENA::get_ENA_title($biorep_id);
+    return EGTH::ENA::get_ENA_title($biorep_id);
   }
 }
 
@@ -172,7 +172,7 @@ sub make_biosample_super_track_obj{
   my $self= shift;
   my $sample_id = shift; # track name
 
-  my $ena_sample_title = EGTrackHubs::ENA::get_ENA_title($sample_id);
+  my $ena_sample_title = EGTH::ENA::get_ENA_title($sample_id);
   my $short_label = $sample_id;
   my $long_label;
 
@@ -189,9 +189,9 @@ sub make_biosample_super_track_obj{
   my $date_string = strftime "%a %b %e %H:%M:%S %Y %Z", gmtime;  # date is of this type: "Tue Feb  2 17:57:14 2016 GMT"
   my $metadata_string="hub_created_date=".printlabel_value($date_string)." biosample_id=".$sample_id;
     
-  my $meta_keys_aref = EGTrackHubs::ENA::get_all_sample_keys(); # array ref that has all the keys for the ENA warehouse metadata
+  my $meta_keys_aref = EGTH::ENA::get_all_sample_keys(); # array ref that has all the keys for the ENA warehouse metadata
   # returns a has ref or 0 if unsuccessful
-  my $metadata_respose = EGTrackHubs::ENA::get_sample_metadata_response_from_ENA_warehouse_rest_call( $sample_id,$meta_keys_aref);  
+  my $metadata_respose = EGTH::ENA::get_sample_metadata_response_from_ENA_warehouse_rest_call( $sample_id,$meta_keys_aref);  
   if ($metadata_respose==0){
   
     print STDERR "No metadata values found in ENA warehouse for sample $sample_id\n";
@@ -210,7 +210,7 @@ sub make_biosample_super_track_obj{
     $metadata_string = $metadata_string." " . join(" ",@meta_pairs);
   }
 
-  my $super_track_obj = EGTrackHubs::TrackHubDB::SuperTrack->new(
+  my $super_track_obj = EGTH::TrackHub::SuperTrack->new(
     track      => $sample_id,
     shortLabel => $short_label,
     longLabel  => $long_label,
@@ -234,7 +234,7 @@ sub make_biosample_sub_track_obj{
   my $study_id=$study_obj->id;
   
   $logger->debug("Get ENA cram location for $biorep_id");
-  my $big_data_url = EGTrackHubs::ENA::get_ENA_cram_location($biorep_id) ; 
+  my $big_data_url = EGTH::ENA::get_ENA_cram_location($biorep_id) ; 
 
   if (!$big_data_url){ # if the cram file is not yet in ENA the method ENA::get_ENA_cram_location($biorep_id) returns 0
 
@@ -280,8 +280,8 @@ sub make_biosample_sub_track_obj{
   }
 
   $logger->debug("Get ENA data type for $big_data_url");
-  my $file_type = EGTrackHubs::ENA::give_big_data_file_type($big_data_url);
-  my $track_obj = EGTrackHubs::TrackHubDB::SubTrack->new(
+  my $file_type = EGTH::ENA::give_big_data_file_type($big_data_url);
+  my $track_obj = EGTH::TrackHub::SubTrack->new(
     track      => $biorep_id,
     parent     => $parent_id,
     bigDataUrl => $big_data_url,

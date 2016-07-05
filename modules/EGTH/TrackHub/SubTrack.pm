@@ -1,4 +1,4 @@
-package EGTrackHubs::TrackHubDB::SubTrack;
+package EGTH::TrackHub::SubTrack;
 
 use strict;
 use warnings;
@@ -7,7 +7,7 @@ use Carp;
 $Carp::Verbose = 1;
 
 use Moose;
-extends 'EGTrackHubs::TrackHubDB::Track';
+extends 'EGTH::TrackHub::Track';
 use namespace::autoclean;
 
 # Attributes

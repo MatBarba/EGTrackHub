@@ -12,7 +12,7 @@ use Data::Dumper;
 use Perl6::Slurp qw(slurp);
 
 # checks if the modules can load
-use_ok('EGTrackHubs::TrackHubDB::Genome');
+use_ok('EGTH::TrackHub::Genome');
 
 # Prepare dummy data
 my %ex = (
@@ -34,17 +34,17 @@ bigDataUrl $tr{bigDataUrl}
 
 # Test creation of a Genome
 throws_ok {
-  my $gen = EGTrackHubs::TrackHubDB::Genome->new();
+  my $gen = EGTH::TrackHub::Genome->new();
   } 'Moose::Exception::AttributeIsRequired',
   "Creating a Genome object without any parameters should fail";
 
 ok (
-  my $gen = EGTrackHubs::TrackHubDB::Genome->new(%ex),
+  my $gen = EGTH::TrackHub::Genome->new(%ex),
   "Creating a Genome object with all required fields"
 );
 isa_ok(
   $gen,
-  'EGTrackHubs::TrackHubDB::Genome',
+  'EGTH::TrackHub::Genome',
   'Right object created'
 );
 cmp_ok(
@@ -90,7 +90,7 @@ dies_ok {
 #);
 
 ok(
-  my $track = EGTrackHubs::TrackHubDB::Track->new( %tr ),
+  my $track = EGTH::TrackHub::Track->new( %tr ),
   "Create 1 generic track"
 );
 

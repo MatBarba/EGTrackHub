@@ -1,4 +1,4 @@
-package EGTrackHubs::TrackHubDB;
+package EGTH::TrackHub;
 
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use namespace::autoclean;
 use File::Spec;
 use File::Path qw(make_path);
 
-use EGTrackHubs::TrackHubDB::Genome;
+use EGTH::TrackHub::Genome;
 
 # Attributes
 
@@ -57,7 +57,7 @@ has hub_dir => (
 
 has genomes => (
   is      => 'rw',
-  isa     => 'HashRef[EGTrackHubs::TrackHubDB::Genome]',
+  isa     => 'HashRef[EGTH::TrackHub::Genome]',
   default => sub { {} },
 );
 

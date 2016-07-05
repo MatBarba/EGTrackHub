@@ -1,4 +1,4 @@
-package EGTrackHubs::JsonResponse;
+package EGTH::JsonResponse;
 
 use strict ;
 use warnings;

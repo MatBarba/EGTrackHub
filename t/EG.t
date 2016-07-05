@@ -12,11 +12,11 @@ use Test::Exception;
 # -----
 
 # test1
-use_ok('EGTrackHubs::EG');  # it checks if it can use the module correctly
+use_ok('EGTH::EG');  # it checks if it can use the module correctly
 
 # test2
 my $ens_genomes_plants_call = "http://rest.ensemblgenomes.org/info/genomes/division/EnsemblPlants?content-type=application/json";
-my $json_response_aref = EGTrackHubs::JsonResponse::get_Json_response($ens_genomes_plants_call);  
+my $json_response_aref = EGTH::JsonResponse::get_Json_response($ens_genomes_plants_call);  
 
 foreach my $hash_ref (@$json_response_aref){
   foreach my $key (keys(%$hash_ref)){
@@ -31,7 +31,7 @@ foreach my $hash_ref (@$json_response_aref){
 # -----
 
 #test3
-my $plant_names_href = EGTrackHubs::EG::get_plant_names();
+my $plant_names_href = EGTH::EG::get_plant_names();
 ok(exists $plant_names_href->{arabidopsis_thaliana} ,"Arabidopsis_thaliana exists in the REST response");
 
 # -----
@@ -39,17 +39,17 @@ ok(exists $plant_names_href->{arabidopsis_thaliana} ,"Arabidopsis_thaliana exist
 # -----
 
 #test4
-my $assembly_name = EGTrackHubs::EG::get_assembly_name_using_species_name("triticum_aestivum");
+my $assembly_name = EGTH::EG::get_assembly_name_using_species_name("triticum_aestivum");
 is($assembly_name,"IWGSC1+popseq", "Triticum aestivum has the exprected assembly name");
 
 #test5
-$assembly_name = EGTrackHubs::EG::get_assembly_name_using_species_name("arabidopsis_thaliana");
+$assembly_name = EGTH::EG::get_assembly_name_using_species_name("arabidopsis_thaliana");
 is($assembly_name,"TAIR10", "Arabidopsis thaliana has the exprected assembly name");
 
 #test6
 
 throws_ok {
-  my $assembly_name = EGTrackHubs::EG::get_assembly_name_using_species_name("arabidopsis_thalian");
+  my $assembly_name = EGTH::EG::get_assembly_name_using_species_name("arabidopsis_thalian");
 } qr/The species name: \w+ is not in EG REST response/, "Throws if no assembly for a non-existent species name";
 
 # -----
@@ -57,7 +57,7 @@ throws_ok {
 # -----
 
 #test9
-my $species_name_assembly_id_href=EGTrackHubs::EG::get_species_name_assembly_id_hash();
+my $species_name_assembly_id_href=EGTH::EG::get_species_name_assembly_id_hash();
 is($species_name_assembly_id_href->{triticum_aestivum}, "0000", "Triticum aestivum has the exprected assembly id");
 
 #test10
