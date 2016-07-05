@@ -16,6 +16,12 @@ has '+visibility' => (
   default => undef,
 );
 
+has show => (
+  is      => 'rw',
+  isa     => 'Bool',
+  default => 1,
+);
+
 has sub_tracks => (
   is       => 'rw',
   isa      => 'ArrayRef[EGTrackHubs::TrackHubDB::Track]',
@@ -31,7 +37,7 @@ sub BUILD {
 sub _prepare_data {
   my $self = shift;
   my %data = $self->SUPER::_prepare_data;
-  $data{ superTrack } = 'on';
+  $data{ superTrack} = $self->show ? 'on show' : 'on';
   return %data;
 }
 

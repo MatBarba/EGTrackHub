@@ -35,7 +35,7 @@ my $expected_super_text = "track $super{track}
 type $super{type}
 shortLabel $super{shortLabel}
 longLabel $super{longLabel}
-superTrack on
+superTrack on show
 ";
 my $expected_sub_text = "track $sub{track}
 type $sub{type}
