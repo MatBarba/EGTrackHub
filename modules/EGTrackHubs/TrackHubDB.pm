@@ -14,34 +14,21 @@ use File::Path qw(make_path);
 use EGTrackHubs::TrackHubDB::Genome;
 
 # Attributes
+
 has id => (
-  is     => 'ro',
-  isa    => 'Str',
+  is      => 'ro',
+  isa     => 'Str',
   required  => 1,
 );
 
-has short_label => (
-  is     => 'ro',
+has [qw(
+  shortLabel
+  longLabel
+  email
+  descriptionUrl
+  )] => (
+  is     => 'rw',
   isa    => 'Str',
-  required  => 1,
-);
-
-has long_label => (
-  is     => 'ro',
-  isa    => 'Str',
-  required  => 1,
-);
-
-has email => (
-  is     => 'ro',
-  isa    => 'Str',
-  required  => 1,
-);
-
-has description_url => (
-  is     => 'ro',
-  isa    => 'Str',
-  required  => 1,
 );
 
 has hub_file => (
@@ -100,11 +87,10 @@ sub update_hub_dir {
 sub create_files {
   my ($self, $dir) = @_;
   
-  croak "Can't find root dir $dir" if not -d $dir;
+  $self->root_dir( $dir ) if $dir;
   
   # Make trackhub dir
-  $self->dir( "$dir/" . $self->id );
-  mkdir $self->dir;
+  make_path $self->hub_dir;
   
   # Generate files
   $self->make_hub_file();
@@ -132,11 +118,11 @@ sub hub_file_content {
   
   my %content = (
     hub            => $self->id,
-    shortLabel     => $self->short_label,
-    longLabel      => $self->long_label,
+    shortLabel     => $self->shortLabel,
+    longLabel      => $self->longLabel,
     genomesFile    => $self->genomes_file,
     email          => $self->email,
-    descriptionUrl => $self->description_url,
+    descriptionUrl => $self->descriptionUrl,
   );
   my @content_order = qw(
     hub
@@ -157,9 +143,9 @@ sub hub_file_content {
     }
   }
   
-  if (%missing_keys) {
-    croak "Missing keys: " . join(', ', sort keys %missing_keys);
-  }
+  #if (%missing_keys) {
+  #  croak "Missing keys: " . join(', ', sort keys %missing_keys);
+  #}
   
   return join("\n", @lines) . "\n";
 }
@@ -225,7 +211,7 @@ sub add_genome {
     croak "The trackhub already has a genome named $genome->id";
   }
   my $genomes = $self->genomes->{ $genome->id } = $genome;
-  $genomes->hub_dir($self->hub_dir);
+  $genomes->hub_dir( $self->hub_dir );
   return 1;
 }
 

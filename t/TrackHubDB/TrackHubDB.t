@@ -18,18 +18,18 @@ use_ok('EGTrackHubs::TrackHubDB::Track');
 
 # Prepare dummy data
 my %ex = (
-  id               => 'th_id_1',
-  short_label      => 'Trackhub_1',
-  long_label       => 'Trackhub number 1',
-  description_url  => 'http://example.org',
-  email            => 'john@smith.org',
+  id             => 'th_id_1',
+  shortLabel     => 'Trackhub_1',
+  longLabel      => 'Trackhub number 1',
+  descriptionUrl => 'http://example.org',
+  email          => 'john@smith.org',
 );
 my $expected_hub = "hub $ex{id}
-shortLabel $ex{short_label}
-longLabel $ex{long_label}
+shortLabel $ex{shortLabel}
+longLabel $ex{longLabel}
 genomesFile genomes.txt
 email $ex{email}
-descriptionUrl $ex{description_url}
+descriptionUrl $ex{descriptionUrl}
 ";
 
 # Test creation of a TrackhubDB
@@ -38,11 +38,6 @@ throws_ok {
   } 'Moose::Exception::AttributeIsRequired',
   "Creating a Trackhub object without any parameters should fail";
 
-throws_ok {
-  my $th = EGTrackHubs::TrackHubDB->new(id => $ex{id});
-  } 'Moose::Exception::AttributeIsRequired',
-  "Creating a Trackhub object without all required fields should fail";
-  
 ok (
   my $th = EGTrackHubs::TrackHubDB->new(%ex),
   "Creating a Trackhub object with all required fields"

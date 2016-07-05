@@ -71,8 +71,10 @@ sub config_text {
   if (not defined $self->genome_dir) {
     croak "Can't create config text without a directory.";
   }
+  
+  # Create the path NB: here we want the relative path, so we use the id as directory
   my $trackdb_path = File::Spec->catfile(
-    $self->genome_dir,
+    $self->id,
     $self->trackdb_file
   );
   

@@ -11,7 +11,10 @@ use Moose;
 use namespace::autoclean;
 
 # Attributes
-has track => (
+has [qw(
+  track
+  shortLabel
+  )] => (
   is        => 'ro',
   isa       => 'Str',
   required  => 1,
@@ -19,7 +22,6 @@ has track => (
 
 has [qw(
   type
-  shortLabel
   longLabel
   bigDataUrl
   html
