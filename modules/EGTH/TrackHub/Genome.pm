@@ -8,6 +8,7 @@ $Carp::Verbose = 1;
 
 use Moose;
 use namespace::autoclean;
+use File::Path qw(make_path);
 
 use EGTH::TrackHub::Track;
 
@@ -111,7 +112,7 @@ sub make_genome_dir {
     croak "Can't create genome file without a directory.";
   }
   
-  mkdir $self->genome_dir;
+  make_path $self->genome_dir;
   return 1;
 }
 
