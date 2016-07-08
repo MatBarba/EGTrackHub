@@ -8,6 +8,8 @@ use Data::Dumper;
 use Test::Exception;
 use Test::File;
 use File::Temp;
+use Log::Log4perl qw( :easy );
+#Log::Log4perl->easy_init($WARN);
 
 # -----
 # checks if the modules can load
@@ -19,7 +21,10 @@ use_ok('EGTH::PlantTrackHub');
 # -----
 
 my $study_id  = "DRP000391";
-my $plant_names = { 'oryza_sativa' => 1 };
+my $plant_names = [qw( oryza_sativa )];
+my %assembly_map = (
+  'IRGSP-1.0' => 'GCA_001433935.1',
+);
 my $email     = 'example@example.com';
 
 ok(my $plant_trackhub = EGTH::PlantTrackHub->new(
@@ -41,11 +46,15 @@ dies_ok {
 
 dies_ok{
   $plant_trackhub->load_plant_data;
-} "Loading plant data without plant names should fail";
+} "Loading plant data without parameters should fail";
+
+dies_ok{
+  $plant_trackhub->load_plant_data($plant_names),
+} "Loading plant data without assembly map should fail";
 
 ok(
-  $plant_trackhub->load_plant_data($plant_names),
-  "Load plant data with plant names"
+  $plant_trackhub->load_plant_data($plant_names, \%assembly_map),
+  "Load plant data with plant names and assembly map"
 );
 ok($plant_trackhub->create_files( $tmp_dir . '' ), "Creating all the trackhub files in $tmp_dir");
 sleep 60;

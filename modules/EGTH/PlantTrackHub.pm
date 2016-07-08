@@ -7,6 +7,7 @@ use Carp;
 $Carp::Verbose = 1;
 use Log::Log4perl qw( :easy );
 my $logger = get_logger();
+use Data::Dumper;
 
 use Moose;
 extends 'EGTH::TrackHub';
@@ -20,25 +21,27 @@ use EGTH::AEStudy;
 use EGTH::TrackHub::SubTrack;
 use EGTH::TrackHub::SuperTrack;
 
-
 sub load_plant_data {
   my $self = shift;
-  my ($plant_names) = @_;
+  my ($plant_names, $assembly_map) = @_;
   
   $logger->info("Load study ". $self->id);
-  my $ae_study = EGTH::AEStudy->new($self->id, $plant_names);
+  my $ae_study = EGTH::AEStudy->new(
+    study_id    => $self->id,
+    plant_names => $plant_names
+  );
   $logger->info("Load data for the study");
-  $self->_load_study($ae_study);
+  $self->_load_study($ae_study, $assembly_map);
   
   return 1;
 }
 
 sub _load_study {
   my $self = shift;
-  my ($study) = @_;
+  my ($study, $assembly_map) = @_;
 
   $self->prepare_hub();
-  $self->prepare_genomes($study);
+  $self->prepare_genomes($study, $assembly_map);
 }
 
 sub prepare_hub {
@@ -68,22 +71,23 @@ sub prepare_hub {
 
 sub prepare_genomes {
   my $self = shift;
-  my ($study) = @_;
+  my ($study, $assembly_map) = @_;
 
   $logger->info("Prepare Genomes");
-  my $assembly_names_href = $study->get_assembly_names;
+  my $assembly_names = $study->get_assembly_names;
   my $study_id = $study->id;
   
   # Create genomes
-  foreach my $assembly_name (keys %{$assembly_names_href}) {
-    $logger->info("Assembly: $assembly_name");
+  foreach my $aname (keys %{$assembly_names}) {
+    $logger->warn("Assembly: $aname");
     my $genome = EGTH::TrackHub::Genome->new(
-      id      => $assembly_name,
+      id      => $aname,
+      insdc   => $assembly_map->{$aname},
       hub_dir => $self->hub_dir
     );
     
     # Add the tracks for this study and genome
-    my @sample_ids = keys %{ $study->get_sample_ids($assembly_name) };
+    my @sample_ids = keys %{ $study->get_sample_ids($aname) };
     
     if (@sample_ids == 0) {
       croak "No samples found for study $study_id";
