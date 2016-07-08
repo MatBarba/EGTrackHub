@@ -1,8 +1,9 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use Carp;
 
-use Test::More skip_all => "TODO";
+#use Test::More skip_all => "TODO";
 use Test::More qw(no_plan);
 use Test::Exception;
 
@@ -13,22 +14,86 @@ use EGTH::AEStudy;
 # -----
 # checks if the module can load
 # -----
-
-#test1
 use_ok('EGTH::Registry');  
 
 # -----
 # test constructor
 # -----
+my $user = $ENV{'THR_USER'};
+my $pass = $ENV{'THR_PASS'};
 
-my $registry_obj = EGTH::Registry->new("testing" ,"testing" );
+SKIP : {
+  skip "credentials needed to test the registry API (define THR_USER and THR_PASS in the environment)" unless $user and $pass;
+  
+  # First, test the login
+  dies_ok {
+    my $registry = EGTH::Registry->new;
+  } "Login without credentials fails";
+  
+  # Wrong credentials
+  dies_ok {
+    my $registry = EGTH::Registry->new(
+      user  => "00000000000000000",
+      pass  => "password"
+    );
+  } "Login with wrong credentials fails";
+  
+  # Actual credentials
+  ok(
+    my $registry = EGTH::Registry->new(
+      user     => $user,
+      password => $pass
+    ),
+    "Login with right credentials"
+  );
 
-# test2
-isa_ok($registry_obj,'EGTH::Registry','checks whether the object constructed is of my class type');
+  isa_ok(
+    $registry,
+    'EGTH::Registry',
+    'The object constructed is of my class type'
+  );
 
-# test3
-dies_ok(sub{EGTH::Registry->new("blabla")},'checks if wrong object construction of my class dies');
+  dies_ok {
+    EGTH::Registry->new("blabla");
+  } 'Wrong object construction dies';
+  
+  ok($registry->is_public == 0, "The registry is not public by default");
+  ok($registry->is_public(1) == 1, "Set the registry to public mode");
+  ok($registry->is_public(0) == 0, "Set the registry back to private mode");
 
+  # Register 1 trackhub
+  dies_ok {
+    $registry->register_track_hub(
+      "trackhub_id",
+      "https://wrong.address/hub.txt"
+    );
+  } "Can't register a trackhub with wrong hub.txt url";
+  
+  my $th_id      = 'RNAseq_group_211';
+  my $hub_url    = 'http://www.ebi.ac.uk/~mbarba/rnaseq/hubs/anopheles_minimus/RNAseq_group_211/hub.txt';
+  my %assemblies = (
+    #'Oryza_brachyantha.v1.4b' => 'GCA_000231095.2'
+    'AminM1' => 'GCA_000349025.1',
+  );
+  my $assemblies_list = join(',', (map { "$_,$assemblies{$_}" } keys %assemblies));
+  
+  ok (
+    $registry->register_track_hub(
+      $th_id,
+      $hub_url,
+      $assemblies_list
+    ),
+    "Can register a trackhub with correct data"
+  );
+
+  ok(
+    $registry->delete_track_hub($th_id),
+    "Can delete a trackhub"
+  );
+  
+}
+
+__END__
 # -----
 # test register_track_hub method
 # -----
@@ -80,17 +145,6 @@ $registry_obj->register_track_hub("SRP045759","ftp://ftp.ensemblgenomes.org/pub/
  };
 
 ok($stdout5=~/Done/,"Successful deletion of track hub");
-
-#-----
-#test registry_login method
-#-----
-
-
-#test10
-dies_ok(sub{$registry_obj->registry_login("testing","no_valid_username")} , "Successfully died when given unvalid username");
-
-#test11
-dies_ok(sub{$registry_obj->registry_login("testing")} , "Successfully died when not given username");
 
 # -----
 # test give_all_Registered_track_hub_names method

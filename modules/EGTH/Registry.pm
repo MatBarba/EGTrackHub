@@ -2,210 +2,260 @@ package EGTH::Registry;
 
 use strict;
 use warnings;
+use Carp;
+use Moose;
+use Data::Dumper;
+use Log::Log4perl qw(:easy);
+my $logger = get_logger();
 
 use JSON;
 use HTTP::Request::Common qw/GET DELETE POST/;
 use LWP::UserAgent;
 
-my $server = "https://beta.trackhubregistry.org";
-my $ua = LWP::UserAgent->new;
+my $SERVER       = 'https://beta.trackhubregistry.org';
+my $LOGIN_API    = $SERVER . '/api/login';
+my $LOGOUT_API   = $SERVER . '/api/logout';
+my $TRACKHUB_API = $SERVER . '/api/trackhub';
+
 $| = 1; 
 
-sub new {
+# Attributes
+has [qw(
+  user
+  password
+)] => (
+  is        => 'ro',
+  isa       => 'Str',
+  required  => 1,
+);
 
-  my $class = shift;
+has auth_token => (
+  is        => 'ro',
+  isa       => 'Str',
+  lazy      => 1,
+  builder   => '_get_token',
+);
 
-  my $username  = shift;
-  my $password = shift;
-  my $visibility = shift; # in the THR I can register track hubs but being not publicly available. This is useful for testing. I can only see the track hubs with visibility "hidden" in my THR account, they are not seen by anyone else
+has agent => (
+  is        => 'ro',
+  isa       => 'LWP::UserAgent',
+  lazy      => 1,
+  builder   => '_build_agent',
+);
+
+has is_public => (
+  is      => 'rw',
+  isa     => 'Bool',
+  default => 0,
+);
+
+sub _build_agent {
+  my $self = shift;
+  return LWP::UserAgent->new;
+}
+
+# Subs
+sub _get_token {
+  my $self = shift;
+  my $user = $self->user;
+  my $pass = $self->password;
   
-  defined $username and $password and $visibility
-    or die "Some required parameters are missing in the constructor in order to construct a Registry object\n";
+  if (    not defined $SERVER
+      and not defined $user
+      and not defined $pass
+  ) {
+    croak "Some required parameters are missing when trying to login in the TrackHub Registry";
+  }
 
-  my $self = {
-    username  => $username ,
-    pwd => $password,
-    visibility => $visibility
+  # Request a token
+  my $request = GET($LOGIN_API);
+  $request->headers->authorization_basic($user, $pass);
+  my $response = $self->agent->request($request);
+
+  # Check answer
+  if (not $response->is_success) {
+    croak "Unable to login to Registry: " . $response->status_line;
+  }
+  my $auth_token = from_json($response->content)->{auth_token};
+  
+  # Check token
+  if (not defined $auth_token) {
+    croak "Undefined authentication token when trying to login in the Track Hub Registry";
+  }
+  
+  return $auth_token;
+}
+
+sub DEMOLISH {
+  my $self = shift;
+  
+  if (defined $self->user
+      and defined $self->password
+      and defined $self->auth_token) {
+    my $request = GET($LOGOUT_API);
+    $request->headers->header(
+      user       => $self->user,
+      auth_token => $self->auth_token
+    );
+    my $response = $self->agent->request($request);
+    if (not $response->is_success) {
+      croak "Unable to logout correctly: " . $response->status_line;
+    }
+  }
+}
+
+sub _request {
+  my $self = shift;
+  my ($url, $action) = @_;
+  
+  my $num_repeats = 3;
+  my $wait_time   = 5;
+  
+  my $request;
+  if (     $action eq 'GET') {
+    $request = GET($url);
+  } elsif ($action eq 'DELETE') {
+    $request = DELETE($url);
+  } elsif ($action eq 'POST') {
+    $request = POST($url);
+  }
+  
+  $request->headers->header(
+    user       => $self->user,
+    auth_token => $self->auth_token,
+  );
+  
+  # Repeat the request
+  for my $rep (1..$num_repeats) {
+    my $response      = $self->agent->request($request);
+    my $response_code = $response->code;
+    if ($response->is_success) {
+      return from_json($response->content);
+    }
+    sleep $wait_time;
+  }
+  croak "Couldn't get a successful response after $num_repeats retries";
+}
+
+sub register_track_hubs {
+  my $self = shift;
+  my @hubs = @_;
+  
+  for my $hub (@hubs) {
+    $self->new_register_track_hub(
+      id           => $hub->id,
+      url          => $hub->url,
+      assembly_map => $hub->assembly_map
+    );
+  }
+}
+
+sub new_register_track_hub {
+  my $self = shift;
+  my %pars = @_;
+  
+  $self->register_track_hub(
+    $pars{id},
+    $pars{url},
+    $pars{assembly_map}
+  );
+}
+
+sub register_track_hub {
+  my $self = shift;
+
+  my ($track_hub_id,
+      $hub_url,
+      $assembly_mapping,
+  ) = @_;
+  
+  croak "No track hub id provided"                       if not defined $track_hub_id;
+  croak "No hub.txt url provided"                        if not defined $hub_url;
+  croak "No assembly mapping (name,accession) provided"  if not defined $assembly_mapping;
+
+  my %assemblies = split(/,/, $assembly_mapping);
+
+  my $trackhub_content = {
+    url        => $hub_url,
+    type       => 'transcriptomics',
   };
+  $trackhub_content->{assemblies} = \%assemblies if %assemblies;
+  $trackhub_content->{public}     = 0 if not $self->is_public;
 
-  my $auth_token = eval {registry_login($username, $password) };
-  if ($@) {
-    print STDERR "Couldn't login using username $username and password $password: $@\n";
-    die;
-  }
-  $self->{auth_token} = $auth_token;
-
-  return bless $self,$class;
-}
-
-sub register_track_hub{
- 
-  my $self = shift;
-
-  my $track_hub_id = shift;
-  my $trackHub_txt_file_url = shift;
-  my $assembly_name_accession_pairs = shift; 
-
-  defined $track_hub_id and $trackHub_txt_file_url and $assembly_name_accession_pairs
-    or print "Some required parameters are missing in order to register track hub the Track Hub Registry\n" and return 0;
-
-  my $return_string;
-
-  my $username = $self->{username};
-  my $auth_token = $self->{auth_token};
-
-  my $url = $server . '/api/trackhub';
-
-  #my $assembly_name_accession_pairs=  "ASM242v1,GCA_000002425.1,IRGSP-1.0,GCA_000005425.2";
-  my @words = split(/,/, $assembly_name_accession_pairs);
-  my $assemblies;
-  for(my $i=0; $i<$#words; $i+=2) {
-    $assemblies->{$words[$i]} = $words[$i+1];
-  }
-
-  my $request ;
-
-  if($self->{visibility} eq "public"){
-
-    $request = POST($url,'Content-type' => 'application/json',
-	 #  assemblies => { "$assembly_name" => "$assembly_accession" } }));
-    'Content' => to_json({ url => $trackHub_txt_file_url, type => 'transcriptomics', assemblies => $assemblies }));
-
-  }else{  # hidden
-    $request = POST($url,'Content-type' => 'application/json',
-	 #  assemblies => { "$assembly_name" => "$assembly_accession" } }));
-    'Content' => to_json({ url => $trackHub_txt_file_url, type => 'transcriptomics', assemblies => $assemblies , public => 0 }));
-  }
-  $request->headers->header(user => $username);
-  $request->headers->header(auth_token => $auth_token);
-
-  my $response = $ua->request($request);
-
-  my $response_code= $response->code;
-
-  if($response_code == 201) {
-
-   $return_string= "	..$track_hub_id is Registered\n";
-
-  }else{ 
-
-    $return_string= "Couldn't register track hub with the first attempt: " .$track_hub_id."\t".$assembly_name_accession_pairs."\t".$response->code."\t" .$response->content."\n";
-
-    my $flag_success=0;
-
-    for(my $i=1; $i<=10; $i++) {
-
-      $return_string = "\t".$return_string. $i .") Retrying attempt: Retrying after 5s...\n";
+  my $request = POST(
+    $TRACKHUB_API,
+    'Content-type' => 'application/json',
+    'Content'      => to_json($trackhub_content)
+  );
+  $request->headers->header(
+    user       => $self->user,
+    auth_token => $self->auth_token
+  );
+  
+  my $num_repeat = 1;
+  my $response;
+  for my $repeat (1..$num_repeat) {
+    $response = $self->agent->request($request);
+    if ( $response->is_success and $response->code == 201 ) {
+      return $track_hub_id;
+    } else {
       sleep 5;
-      $response = $ua->request($request);
-      $response_code= $response->code;
-
-      if($response_code == 201){
-        $flag_success =1 ;
-        $return_string = $return_string. "	..$track_hub_id is Registered\n";
-        last;
-      }
-
     }
-
-    if($flag_success ==0){
-
-      $return_string = $return_string . "	..Didn't manage to register the track hub $track_hub_id , check in STDERR\n";
-      print STDERR $track_hub_id."\t".$assembly_name_accession_pairs."\t".$response->code."\t". $response->content."\n\n";
-    }
-
   }
-  return $return_string;
+  croak "Couldn't register the track hub $track_hub_id: " . $response->status_line . "\n" . $response->as_string;
 }
 
-sub delete_track_hub{
-
+sub delete_track_hub {
   my $self = shift;
+  my ($track_hub_id) = @_;
 
-  my $track_hub_id = shift;
+  croak "Missing trackhub id for deletion" if not defined $track_hub_id;
 
-  defined $track_hub_id
-    or print "Track hub id parameter required to remove track hub from the Track Hub Registry\n" and return 0;
-
-  my $auth_token = eval { $self->{auth_token} };
+  my $auth_token = $self->auth_token;
 
   my %trackhubs;
-  my $url = $server . '/api/trackhub';
 
-  if ($track_hub_id eq "all"){
-    %trackhubs= %{$self->give_all_Registered_track_hub_names()};
-    
-  }else{
+  if ($track_hub_id eq "all") {
+    %trackhubs = %{ $self->give_all_Registered_track_hub_names() };
+  } else {
     $trackhubs{$track_hub_id} = 1;
   }
 
-  my $counter_of_deleted=0;
+  my $del_count = 0;
 
-  foreach my $track_hub (keys %trackhubs) {
-
-    $counter_of_deleted++;
-    if($track_hub_id eq "all"){
-      print "$counter_of_deleted";
-    }
-    print "\tDeleting trackhub ". $track_hub."\t";
-    my $request = DELETE("$url/" . $track_hub);
-
-    $request->headers->header(user => $self->{username});
-    $request->headers->header(auth_token => $auth_token);
-    my $response = $ua->request($request);
+  foreach my $track_hub_id (sort keys %trackhubs) {
+    $logger->info( "$del_count\tDeleting trackhub ". $track_hub_id );
+    my $url = "$TRACKHUB_API/$track_hub_id";
+    my $request = DELETE($url);
+    $request->headers->header(
+      user       => $self->user,
+      auth_token => $auth_token
+    );
+    my $response = $self->agent->request($request);
     my $response_code= $response->code;
-
-    if ($response->code != 200) {
-      $counter_of_deleted--;
-      print "..Error- couldn't be deleted - check STDERR.\n";
-      printf STDERR "\n\tCouldn't delete track hub from THR : " . $track_hub . " with response code ".$response->code . " and response content ".$response->content." in script " .__FILE__. " line " .__LINE__."\n";
-    } else {
-      print "..Done\n";
-    }
+    
+    if ($response->is_success and $response->code == 200) {
+       $del_count++;
+     } else {
+      croak "Couldn't delete the track hub $track_hub_id: " . $response->status_line . "\n" . $response->as_string;
+     }
   }
-}
-
-sub registry_login {
-
-  my $user = shift;
-  my $pass = shift;
-  
-  defined $server and defined $user and defined $pass
-    or die "Some required parameters are missing when trying to login in the TrackHub Registry\n";
-
-  my $endpoint = '/api/login';
-  my $url = $server.$endpoint; 
-
-  my $request = GET($url);
-  $request->headers->authorization_basic($user, $pass);
-
-  my $response = $ua->request($request);
-  my $auth_token;
-
-  if ($response->is_success) {
-    $auth_token = from_json($response->content)->{auth_token};
-  } else {
-    die "Unable to login to Registry, reason: " .$response->code ." , ". $response->content."\n";
-  }
-  
-  defined $auth_token or die "Undefined authentication token when trying to login in the Track Hub Registry\n";
-  return $auth_token;
-
+  return $del_count;
 }
 
 sub give_all_Registered_track_hub_names{
 
   my $self = shift;
 
-  my $registry_user_name= $self->{username};
+  my $registry_user_name= $self->user;
   my %track_hub_names;
 
-  my $auth_token = eval { $self->{auth_token} };
+  my $auth_token = eval { $self->auth_token };
 
-  my $request = GET("$server/api/trackhub");
+  my $request = GET("$SERVER/api/trackhub");
   $request->headers->header(user => $registry_user_name);
   $request->headers->header(auth_token => $auth_token);
-  my $response = $ua->request($request);
+  my $response = $self->agent->request($request);
 
   my $response_code= $response->code;
 
@@ -223,7 +273,7 @@ sub give_all_Registered_track_hub_names{
 
       print "\t".$i .") Retrying attempt: Retrying after 5s...\n";
       sleep 5;
-      $response = $ua->request($request);
+      $response = $self->agent->request($request);
       if($response->is_success){
         $flag_success =1 ;
         my $trackhubs = from_json($response->content);
@@ -249,14 +299,14 @@ sub get_Registry_hub_last_update { # gives the last update date(unix time) of th
   defined $name
     or print "Track hub name parameter required to get the track hub's last update date in the Track Hub Registry\n" and return 0;
 
-  my $registry_user_name= $self->{username};
+  my $registry_user_name= $self->user;
 
-  my $auth_token = $self->{auth_token};
+  my $auth_token = $self->auth_token;
  
-  my $request = GET("$server/api/trackhub/$name");
+  my $request = GET("$SERVER/api/trackhub/$name");
   $request->headers->header(user       => $registry_user_name);
   $request->headers->header(auth_token => $auth_token);
-  my $response = $ua->request($request);
+  my $response = $self->agent->request($request);
   my $hub;
 
   if ($response->is_success) {
@@ -270,7 +320,7 @@ sub get_Registry_hub_last_update { # gives the last update date(unix time) of th
 
       print "\t".$i .") Retrying attempt: Retrying after 5s...\n";
       sleep 5;
-      $response = $ua->request($request);
+      $response = $self->agent->request($request);
       if($response->is_success){
         $hub = from_json($response->content);
         $flag_success =1 ;
@@ -292,7 +342,7 @@ sub get_Registry_hub_last_update { # gives the last update date(unix time) of th
     $request = GET($trackdb->{uri});
     $request->headers->header(user       => $registry_user_name);
     $request->headers->header(auth_token => $auth_token);
-    $response = $ua->request($request);
+    $response = $self->agent->request($request);
     my $doc;
     if ($response->is_success) {
       $doc = from_json($response->content);
@@ -324,14 +374,14 @@ sub give_all_bioreps_of_study_from_Registry {
   defined $name
     or print "Track hub name parameter required to get the track hub's bioreps from the Track Hub Registry\n" and return 0;
 
-  my $registry_user_name= $self->{username};
+  my $registry_user_name= $self->user;
   
-  my $auth_token = $self->{auth_token};
+  my $auth_token = $self->auth_token;
 
-  my $request = GET("$server/api/trackhub/$name");
+  my $request = GET("$SERVER/api/trackhub/$name");
   $request->headers->header(user       => $registry_user_name);
   $request->headers->header(auth_token => $auth_token);
-  my $response = $ua->request($request);
+  my $response = $self->agent->request($request);
   my $hub;
 
   if ($response->is_success) {
@@ -347,7 +397,7 @@ sub give_all_bioreps_of_study_from_Registry {
 
       print "\t".$i .") Retrying attempt: Retrying after 5s...\n";
       sleep 5;
-      $response = $ua->request($request);
+      $response = $self->agent->request($request);
       if($response->is_success){
         $hub = from_json($response->content);
         $flag_success =1 ;
@@ -369,7 +419,7 @@ sub give_all_bioreps_of_study_from_Registry {
     $request = GET($trackdb->{uri});
     $request->headers->header(user       => $registry_user_name);
     $request->headers->header(auth_token => $auth_token);
-    $response = $ua->request($request);
+    $response = $self->agent->request($request);
     my $doc;
 
     if ($response->is_success) {
