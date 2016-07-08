@@ -16,26 +16,20 @@ my $plants_url = $array_express_url . "/getOrganisms/plants";
 # On success: return a hash with keys = plant_names
 # On failure: return undef
 sub get_plant_names_AE_API {
-    my %plant_names;
-
 #response:
 #[{"ORGANISM":"aegilops_tauschii","REFERENCE_ORGANISM":"aegilops_tauschii"},{"ORGANISM":"amborella_trichopoda","REFERENCE_ORGANISM":"amborella_trichopoda"},
 #{"ORGANISM":"arabidopsis_kamchatica","REFERENCE_ORGANISM":"arabidopsis_lyrata"},{"ORGANISM":"arabidopsis_lyrata","REFERENCE_ORGANISM":"arabidopsis_lyrata"},
 #{"ORGANISM":"arabidopsis_lyrata_subsp._lyrata","REFERENCE_ORGANISM":"arabidopsis_lyrata"},{"ORGANISM":"arabidopsis_thaliana","REFERENCE_ORGANISM":"arabidopsis_thaliana"},
   
-    try {
-        my $plants_data = EGTH::JsonResponse::get_Json_response($plants_url);
-
-        foreach my $plant_data_ref (@$plants_data) {
-            # this hash has all possible names of plants that Robert is using in his REST calls;
-            # I get them from here: http://www.ebi.ac.uk/fg/rnaseq/api/json/70/getOrganisms/plants
-            $plant_names{ $plant_data_ref->{"REFERENCE_ORGANISM"} } = 1;
-        }
-
-        return \%plant_names;
-    } catch {
-      return;
-    }
+  my $plants_data = EGTH::JsonResponse::get_Json_response($plants_url);
+  my %plant_names_hash;
+  foreach my $plant_data_ref (@$plants_data) {
+    # this hash has all possible names of plants that Robert is using in his REST calls;
+    # I get them from here: http://www.ebi.ac.uk/fg/rnaseq/api/json/70/getOrganisms/plants
+    $plant_names_hash{ $plant_data_ref->{"REFERENCE_ORGANISM"} } = 1;
+  }
+  my @plant_names = sort keys %plant_names_hash;
+  return \@plant_names;
 }
 
 # No study: return undef
