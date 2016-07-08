@@ -103,6 +103,7 @@ dies_ok {
 # Now, add a genome
 my %genome_sample = (
   id  => 'genome_1',
+  insdc => 'GCA00000XXXX'
 );
 ok(
   my $genome = EGTH::TrackHub::Genome->new(%genome_sample),

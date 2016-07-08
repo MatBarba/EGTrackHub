@@ -215,6 +215,15 @@ sub add_genome {
   return 1;
 }
 
+sub assembly_map {
+  my $self = shift;
+  
+  my %map;
+  my %genomes = %{ $self->genomes };
+  for my $genome_id (keys %genomes) {
+    $map{ genome_id } = $genomes{ $genome_id }->{assembly_accession};
+  }
+}
 
 __PACKAGE__->meta->make_immutable;
 1;

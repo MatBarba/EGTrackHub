@@ -17,6 +17,7 @@ use_ok('EGTH::TrackHub::Genome');
 # Prepare dummy data
 my %ex = (
   id  => 'genome_id_1',
+  insdc => 'GCA00000001.1',
 );
 my %tr = (
   track      => 'track_1',

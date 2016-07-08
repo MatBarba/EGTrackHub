@@ -19,6 +19,12 @@ has id => (
   required  => 1,
 );
 
+has insdc => (
+  is        => 'ro',
+  isa       => 'Str',
+  required  => 1,
+);
+
 has hub_dir => (
   is     => 'rw',
   isa    => 'Str',
