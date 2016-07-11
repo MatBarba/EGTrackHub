@@ -27,7 +27,7 @@ sub load_plant_data {
 
   $logger->info( "Load study " . $self->id );
   my $ae_study = EGTH::AEStudy->new(
-    study_id    => $self->id,
+    id          => $self->id,
     plant_names => $plant_names
   );
   $logger->info("Load data for the study");

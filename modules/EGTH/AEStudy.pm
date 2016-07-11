@@ -13,7 +13,7 @@ use EGTH::ENA;
 ## this is a class of an AE study. It considers only PLANT species.
 # AE REST call: http://www.ebi.ac.uk/fg/rnaseq/api/json/70/getRunsByStudy/SRP068911
 
-has study_id => (
+has id => (
   is       => 'ro',
   isa      => 'Str',
   required => 1,
@@ -41,7 +41,7 @@ sub make_runs {
 
   # Get the runs
   my $runs_response =
-    EGTH::ArrayExpress::get_runs_json_for_study( $self->study_id );
+    EGTH::ArrayExpress::get_runs_json_for_study( $self->id );
   my @runs_json = @{$runs_response};
 
   # Get the fields
@@ -207,7 +207,7 @@ sub get_big_data_file_location_from_biorep_id {
 
   if ( !$run_tuple->{$biorep_id} ) {
     die "There is not such biorep id $biorep_id in study "
-      . $self->{study_id} . "\n";
+      . $self->id . "\n";
   }
 
   # Returns a string
@@ -221,7 +221,7 @@ sub get_AE_last_processed_date_from_biorep_id {
 
   if ( !$run_tuple->{$biorep_id} ) {
     die "There is not such biorep id $biorep_id in study "
-      . $self->{study_id} . "\n";
+      . $self->id . "\n";
   }
 
   return $run_tuple->{$biorep_id}{"AE_processed_date"};
@@ -237,7 +237,7 @@ sub get_run_ids_of_biorep_id {
 
   if ( !$run_tuple->{$biorep_id} ) {
     die "There is not such biorep id $biorep_id in study "
-      . $self->{study_id} . "\n";
+      . $self->id . "\n";
   }
 
   my $run_string = $run_tuple->{$biorep_id}{"run_ids"};
@@ -254,7 +254,7 @@ sub give_big_data_file_type_of_biorep_id {
 
   if ( !$run_tuple->{$biorep_id} ) {
     die "There is not such biorep id $biorep_id in study "
-      . $self->{study_id} . "\n";
+      . $self->id . "\n";
   }
 
   my $server_location =

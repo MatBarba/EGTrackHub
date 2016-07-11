@@ -22,7 +22,7 @@ use_ok('EGTH::EG');
 my $plant_names = EGTH::ArrayExpress::get_plant_names_AE_API();
 
 my $study = EGTH::AEStudy->new(
-  study_id    => "SRP068911",
+  id          => "SRP068911",
   plant_names => $plant_names
 );
 
@@ -57,7 +57,7 @@ is(
 # test id method
 # -----
 
-my $study_id = $study->study_id;
+my $study_id = $study->id;
 
 #test9
 is( $study_id, "SRP068911", "study id method returns value as expected" );
@@ -68,7 +68,7 @@ is( $study_id, "SRP068911", "study id method returns value as expected" );
 
 # From http://plantain:3000/json/70/getRunsByStudy/DRP000453
 my $study_3_assemblies = EGTH::AEStudy->new(
-  study_id    => "DRP000453",
+  id          => "DRP000453",
   plant_names => $plant_names
 );
 my $oryza_biorep =
@@ -118,7 +118,7 @@ cmp_ok(
 
 #test15
 my $study_with_many_samples_per_biorep_id = EGTH::AEStudy->new(
-  study_id    => "SRP002106",
+  id          => "SRP002106",
   plant_names => $plant_names
 );
 my $sample_ids_href = $study_with_many_samples_per_biorep_id->get_sample_ids; # for study SRP002106
@@ -208,7 +208,7 @@ my $assembly_names_of_study_href = $study_3_assemblies->get_assembly_names(); # 
 ok(
   exists $assembly_names_of_study_href->{"ASM465v1"},
   "Assembly id \'ASM465v1\' of study "
-    . $study_3_assemblies->study_id
+    . $study_3_assemblies->id
     . " exists at the moment"
 );
 
@@ -216,7 +216,7 @@ ok(
 ok(
   exists $assembly_names_of_study_href->{"IRGSP-1.0"},
   "Assembly id \'IRGSP-1.0\' of study "
-    . $study_3_assemblies->study_id
+    . $study_3_assemblies->id
     . " exists at the moment"
 );
 
@@ -224,7 +224,7 @@ ok(
 ok(
   exists $assembly_names_of_study_href->{"OR_W1943"},
   "Assembly id \'OR_W1943\' of study "
-    . $study_3_assemblies->study_id
+    . $study_3_assemblies->id
     . " exists at the moment"
 );
 
@@ -328,7 +328,7 @@ dies_ok(
 
 #test35
 my $study_SRP067728 = EGTH::AEStudy->new(
-  study_id    => "SRP067728",
+  id          => "SRP067728",
   plant_names => $plant_names
 );
 
