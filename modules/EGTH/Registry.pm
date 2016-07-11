@@ -3,6 +3,7 @@ package EGTH::Registry;
 use strict;
 use warnings;
 use Carp;
+use List::MoreUtils qw(uniq);
 use Moose;
 use Data::Dumper;
 use Log::Log4perl qw(:easy);
@@ -111,9 +112,9 @@ sub DEMOLISH {
 
 sub _request {
   my $self = shift;
-  my ( $url, $action ) = @_;
+  my ( $url, $action, $ok_code ) = @_;
 
-  my $num_repeats = 3;
+  my $num_repeats = 1;
   my $wait_time   = 5;
 
   my $request;
@@ -133,22 +134,26 @@ sub _request {
   );
 
   # Repeat the request
+  my $response;
   for my $rep ( 1 .. $num_repeats ) {
-    my $response      = $self->agent->request($request);
+    $response         = $self->agent->request($request);
     my $response_code = $response->code;
     if ( $response->is_success ) {
-      return from_json( $response->content );
+      if ( $ok_code and $response_code == $ok_code ) {
+        return from_json( $response->content );
+      }
     }
     sleep $wait_time;
   }
-  croak "Couldn't get a successful response after $num_repeats retries";
+  croak "Couldn't get a successful response after $num_repeats retries. Latest response: " . $response->status_line;
 }
 
 sub register_track_hubs {
   my $self = shift;
-  my @hubs = @_;
+  my ($hubs) = @_;
 
-  for my $hub (@hubs) {
+  for my $hub (@$hubs) {
+    print STDERR sprintf("Registering track hub %s with url %s (%s)\n", $hub->id, $hub->url, $self->is_public ? 'public' : 'hidden');
     $self->new_register_track_hub(
       id           => $hub->id,
       url          => $hub->url,
@@ -174,7 +179,7 @@ sub register_track_hub {
   croak "No assembly mapping (name,accession) provided"
     if not defined $assembly_mapping;
 
-  my %assemblies = split( /,/, $assembly_mapping );
+  my %assemblies = %$assembly_mapping;
 
   my $trackhub_content = {
     url  => $hub_url,
@@ -209,26 +214,27 @@ sub register_track_hub {
     . $response->as_string;
 }
 
-sub delete_track_hub {
+sub delete_all_track_hubs {
   my $self = shift;
-  my ($track_hub_id) = @_;
+  
+  my $track_hub_ids = $self->get_all_registered;
+  $self->delete_track_hubs($track_hub_ids);
+}
 
-  croak "Missing trackhub id for deletion" if not defined $track_hub_id;
+sub delete_track_hubs {
+  my $self = shift;
+  my @track_hub_ids = @_;
+
+  if (not @track_hub_ids) {
+    $logger->info("List of track hubs to delete is empty");
+    return;
+  }
 
   my $auth_token = $self->auth_token;
 
-  my %trackhubs;
-
-  if ( $track_hub_id eq "all" ) {
-    %trackhubs = %{ $self->give_all_Registered_track_hub_names() };
-  }
-  else {
-    $trackhubs{$track_hub_id} = 1;
-  }
-
   my $del_count = 0;
 
-  foreach my $track_hub_id ( sort keys %trackhubs ) {
+  foreach my $track_hub_id ( sort uniq @track_hub_ids ) {
     $logger->info( "$del_count\tDeleting trackhub " . $track_hub_id );
     my $url     = "$TRACKHUB_API/$track_hub_id";
     my $request = DELETE($url);
@@ -251,58 +257,17 @@ sub delete_track_hub {
   return $del_count;
 }
 
-sub give_all_Registered_track_hub_names {
-
+sub get_all_registered {
   my $self = shift;
-
-  my $registry_user_name = $self->user;
-  my %track_hub_names;
-
-  my $auth_token = eval { $self->auth_token };
-
-  my $request = GET("$SERVER/api/trackhub");
-  $request->headers->header( user       => $registry_user_name );
-  $request->headers->header( auth_token => $auth_token );
-  my $response = $self->agent->request($request);
-
-  my $response_code = $response->code;
-
-  if ( $response_code == 200 ) {
-    my $trackhubs = from_json( $response->content );
-    map { $track_hub_names{ $_->{name} } = 1 } @{$trackhubs}; # it is same as : $track_hub_names{$trackhubs->[$i]{name}}=1;
-
-  }
-  else {
-
-    print
-      "\tCouldn't get Registered track hubs with the first attempt when calling method give_all_Registered_track_hub_names in script "
-      . __FILE__ . "\n";
-    print "Got error " . $response->code . " , " . $response->content . "\n";
-    my $flag_success = 0;
-
-    for ( my $i = 1 ; $i <= 10 ; $i++ ) {
-
-      print "\t" . $i . ") Retrying attempt: Retrying after 5s...\n";
-      sleep 5;
-      $response = $self->agent->request($request);
-      if ( $response->is_success ) {
-        $flag_success = 1;
-        my $trackhubs = from_json( $response->content );
-        map { $track_hub_names{ $_->{name} } = 1 } @{$trackhubs};
-        last;
-      }
-    }
-
-    die
-      "Couldn't get list of track hubs in the Registry when calling method give_all_Registered_track_hub_names in script: "
-      . __FILE__
-      . " line "
-      . __LINE__ . "\n"
-      unless $flag_success == 1;
-  }
-
-  return \%track_hub_names;
-
+  
+  my $trackhubs = $self->_request(
+    $TRACKHUB_API,
+    'GET',
+    200
+  );
+  
+  my @ids = map { $_->{name} } @$trackhubs;
+  return \@ids;
 }
 
 sub get_Registry_hub_last_update { # gives the last update date(unix time) of the registration of the track hub
@@ -495,4 +460,22 @@ sub give_all_bioreps_of_study_from_Registry {
 
 }
 
+sub hide_track_hubs {
+  my $self = shift;
+  my ($hubs) = @_;
+  
+  $self->is_public(0);
+  $self->register_track_hubs($hubs);
+}
+
+
+sub show_track_hubs {
+  my $self = shift;
+  my ($hubs) = @_;
+  
+  $self->is_public(1);
+  $self->register_track_hubs($hubs);
+}
+
 1;
+

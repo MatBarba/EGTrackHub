@@ -75,28 +75,24 @@ SKIP: {
   }
   "Can't register a trackhub with wrong hub.txt url";
 
-  my $th_id = 'RNAseq_group_211';
+  my $th_id = 'VBRNAseq_SRP021068';
   my $hub_url =
-    'http://www.ebi.ac.uk/~mbarba/rnaseq/hubs/anopheles_minimus/RNAseq_group_211/hub.txt';
+    'http://www.ebi.ac.uk/~mbarba/rnaseq/hubs/anopheles_minimus/VBRNAseq_SRP021068/hub.txt';
   my %assemblies = (
-
-    #'Oryza_brachyantha.v1.4b' => 'GCA_000231095.2'
     'AminM1' => 'GCA_000349025.1',
   );
-  my $assemblies_list =
-    join( ',', ( map { "$_,$assemblies{$_}" } keys %assemblies ) );
 
   ok(
     $registry->register_track_hub(
       $th_id,
       $hub_url,
-      $assemblies_list
+      \%assemblies
     ),
     "Can register a trackhub with correct data"
   );
 
   ok(
-    $registry->delete_track_hub($th_id),
+    $registry->delete_track_hubs($th_id),
     "Can delete a trackhub"
   );
 
