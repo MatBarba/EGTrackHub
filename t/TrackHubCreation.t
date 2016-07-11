@@ -39,7 +39,10 @@ dies_ok(
 # -----
 
 my $plant_names_response_href = EGTH::ArrayExpress::get_plant_names_AE_API();
-my $study_obj = EGTH::AEStudy->new( $study_id, $plant_names_response_href );
+my $study_obj = EGTH::AEStudy->new(
+  id          => $study_id,
+  plant_names => $plant_names_response_href
+);
 
 $trackHubCreator_obj->make_study_dir( $tmpdir, $study_obj );
 dir_exists_ok( "$study_dir", "Check that the directory exists" );
