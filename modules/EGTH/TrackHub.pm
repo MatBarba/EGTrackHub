@@ -5,6 +5,8 @@ use warnings;
 use autodie;
 use Carp;
 $Carp::Verbose = 1;
+use Log::Log4perl qw(:easy);
+my $logger = get_logger();
 
 use Moose;
 use namespace::autoclean;
@@ -57,6 +59,18 @@ has hub_dir => (
   isa => 'Str',
 );
 
+has server => (
+  is  => 'rw',
+  isa => 'Str',
+);
+
+has url => (
+  is  => 'rw',
+  isa => 'Str',
+  lazy    => 1,
+  'builder' => '_build_hub_url',
+);
+
 has genomes => (
   is      => 'rw',
   isa     => 'HashRef[EGTH::TrackHub::Genome]',
@@ -82,6 +96,12 @@ sub update_hub_dir {
 
   my $hub_dir = File::Spec->catfile( $self->_get_root_dir, $self->id );
   $self->hub_dir($hub_dir);
+}
+
+sub _build_hub_url {
+  my $self = shift;
+  
+  return $self->server . '/' . $self->id . '/' . $self->hub_file;
 }
 
 sub create_files {
@@ -221,8 +241,10 @@ sub assembly_map {
   my %map;
   my %genomes = %{ $self->genomes };
   for my $genome_id ( keys %genomes ) {
-    $map{genome_id} = $genomes{$genome_id}->{assembly_accession};
+    $logger->debug("Map assembly for $genome_id");
+    $map{$genome_id} = $genomes{$genome_id}->insdc;
   }
+  return \%map;
 }
 
 __PACKAGE__->meta->make_immutable;
