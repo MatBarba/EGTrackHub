@@ -4,6 +4,7 @@ use warnings;
 use Carp;
 $Carp::Verbose = 1;
 use Log::Log4perl qw( :easy );
+
 #Log::Log4perl->easy_init($DEBUG);
 Log::Log4perl->easy_init($WARN);
 my $logger = get_logger();
@@ -24,15 +25,17 @@ my $study_id = "DRP000315";
 #test4
 my $study_title = EGTH::ENA::get_ENA_study_title($study_id);
 is(
-    $study_title,
-    "Oryza sativa Japonica Group transcriptome sequencing",
-    "ENA title of study DRP000315 is as expected"
+  $study_title,
+  "Oryza sativa Japonica Group transcriptome sequencing",
+  "ENA title of study DRP000315 is as expected"
 );
 
 my $wrong_study_id = "DRP0003";
 throws_ok {
-  my $study_title_wrong_study_title = EGTH::ENA::get_ENA_study_title($wrong_study_id);
-} qr/Can't find in ENA/, "Wrong study id throws";
+  my $study_title_wrong_study_title =
+    EGTH::ENA::get_ENA_study_title($wrong_study_id);
+}
+qr/Can't find in ENA/, "Wrong study id throws";
 
 # -----
 # test get_ENA_title method
@@ -40,22 +43,25 @@ throws_ok {
 
 my $sample_title = EGTH::ENA::get_ENA_title("SAMN02666886");
 is(
-    $sample_title,
-    "Arabidopsis thaliana Bur-0 X Col-0 seedling, biological replicate 1",
-    "ENA title of sample SAMN02666886 is as expected"
+  $sample_title,
+  "Arabidopsis thaliana Bur-0 X Col-0 seedling, biological replicate 1",
+  "ENA title of sample SAMN02666886 is as expected"
 );
 
 {
   throws_ok {
-    my $sample_title_wrong_sample_title = EGTH::ENA::get_ENA_title("SAMN0266688");
-  } qr/Can't find in ENA/,
+    my $sample_title_wrong_sample_title =
+      EGTH::ENA::get_ENA_title("SAMN0266688");
+  }
+  qr/Can't find in ENA/,
     "Wrong sample id throws";
 }
 
 {
   throws_ok {
     my $title = EGTH::ENA::get_ENA_title("SAMN03782116");
-  } qr/Can't get a node/, "Wrong sample id throws";
+  }
+  qr/Can't get a node/, "Wrong sample id throws";
 }
 
 # -----
@@ -63,8 +69,7 @@ is(
 # -----
 
 #test10
-my $meta_keys_aref = EGTH::ENA::get_all_sample_keys()
-  ;    # array ref that has all the keys for the ENA warehouse metadata
+my $meta_keys_aref = EGTH::ENA::get_all_sample_keys(); # array ref that has all the keys for the ENA warehouse metadata
 my %meta_keys_hash = map { $_ => 1 } @$meta_keys_aref;
 
 my @meta_keys_to_test =
@@ -72,7 +77,7 @@ my @meta_keys_to_test =
 
 foreach my $meta_key (@meta_keys_to_test) {
 
-    ok( exists $meta_keys_hash{$meta_key}, "\'$meta_key\' exists as a key" );
+  ok( exists $meta_keys_hash{$meta_key}, "\'$meta_key\' exists as a key" );
 }
 
 # -----
@@ -82,20 +87,22 @@ foreach my $meta_key (@meta_keys_to_test) {
 my $sample_id = "SAMN02666886";
 
 my $sample_metadata_href =
-  EGTH::ENA::get_sample_metadata_response_from_ENA_warehouse_rest_call( $sample_id,
-    $meta_keys_aref );
+  EGTH::ENA::get_sample_metadata_response_from_ENA_warehouse_rest_call(
+  $sample_id,
+  $meta_keys_aref
+  );
 
 #test16
 ok(
-    exists $sample_metadata_href->{scientific_name},
-    "\'scientific_name\' exists as a key"
+  exists $sample_metadata_href->{scientific_name},
+  "\'scientific_name\' exists as a key"
 );
 
 #test17
 is(
-    $sample_metadata_href->{scientific_name},
-    "Arabidopsis thaliana",
-    "scientic name metakeys is as expected"
+  $sample_metadata_href->{scientific_name},
+  "Arabidopsis thaliana",
+  "scientic name metakeys is as expected"
 );
 
 # -----
@@ -103,12 +110,14 @@ is(
 # -----
 
 #test18
-my $url =
-  EGTH::ENA::create_url_for_call_sample_metadata( "SAMN02666886", $meta_keys_aref );
+my $url = EGTH::ENA::create_url_for_call_sample_metadata(
+  "SAMN02666886",
+  $meta_keys_aref
+);
 like(
-    $url,
-qr/^http:\/\/www.ebi.ac.uk\/ena\/data\/.+accession=SAMN02666886.+sex.+tax_id.*/,
-    "REST url to get ENA metadata is as expected"
+  $url,
+  qr/^http:\/\/www.ebi.ac.uk\/ena\/data\/.+accession=SAMN02666886.+sex.+tax_id.*/,
+  "REST url to get ENA metadata is as expected"
 );
 
 done_testing();

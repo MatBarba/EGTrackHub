@@ -26,8 +26,8 @@ has plant_names => (
 );
 
 has runs => (
-  is       => 'ro',
-  isa      => 'HashRef[HashRef]',
+  is      => 'ro',
+  isa     => 'HashRef[HashRef]',
   lazy    => 1,
   builder => 'make_runs',
 );
@@ -37,266 +37,254 @@ sub make_runs {
 
   my %plant_names = map { $_ => 1 } @{ $self->plant_names };
 
-  my %run_tuple; # to be returned
-  
+  my %run_tuple;    # to be returned
+
   # Get the runs
-  my $runs_response = EGTH::ArrayExpress::get_runs_json_for_study( $self->study_id );
+  my $runs_response =
+    EGTH::ArrayExpress::get_runs_json_for_study( $self->study_id );
   my @runs_json = @{$runs_response};
-  
+
   # Get the fields
   my %fmap = (
-      sample_ids                    => 'SAMPLE_IDS', # ie $run{ SRR1042754 }{ sample_ids }="SAMN02434874,SAMN02434875"
-      organism                      => 'REFERENCE_ORGANISM',
-      assembly_name                 => 'ASSEMBLY_USED',  #ie "TAIR10"
-      big_data_file_server_location => 'CRAM_LOCATION',
-      AE_processed_date             => 'LAST_PROCESSED_DATE',
-      run_ids                       => 'RUN_IDS',
+    sample_ids                    => 'SAMPLE_IDS',
+    organism                      => 'REFERENCE_ORGANISM',
+    assembly_name                 => 'ASSEMBLY_USED',
+    big_data_file_server_location => 'CRAM_LOCATION',
+    AE_processed_date             => 'LAST_PROCESSED_DATE',
+    run_ids                       => 'RUN_IDS',
   );
-  
+
   my %runs;
   foreach my $stanza (@runs_json) {
     my $plant_ref = $stanza->{"REFERENCE_ORGANISM"};
-    if(
-      $stanza->{"STATUS"} eq "Complete"
-        and $plant_names{ $plant_ref }
-    ){
+    if (  $stanza->{"STATUS"} eq "Complete"
+      and $plant_names{$plant_ref} )
+    {
       my %run;
-      for my $run_field (keys %fmap) {
-        my $stanza_field = $fmap{ $run_field };
-        $run{ $run_field } = $stanza->{ $stanza_field };
+      for my $run_field ( keys %fmap ) {
+        my $stanza_field = $fmap{$run_field};
+        $run{$run_field} = $stanza->{$stanza_field};
       }
       my $biorep_id = $stanza->{"BIOREP_ID"};
-      $runs{ $biorep_id } = \%run;
+      $runs{$biorep_id} = \%run;
     }
   }
   return \%runs;
 }
 
-sub id {
-  my $self = shift;
-  return $self->study_id;
-}
-
 # this method is used when there is a study with many assemblies (or organisms); I can get the biorep ids of a specific organism of the study
-sub get_biorep_ids_by_organism{
+sub get_biorep_ids_by_organism {
   my $self = shift;
   my ($organism_name) = @_;
 
   my $run_tuple = $self->runs;
   my %biorep_ids;
 
-  foreach my $biorep_id (keys %{$run_tuple}){
-    
-    if ($run_tuple->{$biorep_id}{"organism"} eq $organism_name){
-      $biorep_ids {$biorep_id} = 1; 
-    }    
+  foreach my $biorep_id ( keys %{$run_tuple} ) {
+
+    if ( $run_tuple->{$biorep_id}{"organism"} eq $organism_name ) {
+      $biorep_ids{$biorep_id} = 1;
+    }
   }
 
   return \%biorep_ids;
 }
 
-sub get_organism_names_assembly_names{
-
+sub get_organism_names_assembly_names {
   my $self = shift;
 
   my $run_tuple = $self->runs;
   my %organism_names;
   my $organism_name;
 
-  foreach my $biorep_id (keys %{$run_tuple}){
-    
+  foreach my $biorep_id ( keys %{$run_tuple} ) {
     $organism_name = $run_tuple->{$biorep_id}{"organism"};
-    $organism_names {$organism_name} = $run_tuple->{$biorep_id}{"assembly_name"}; 
-    
+    $organism_names{$organism_name} =
+      $run_tuple->{$biorep_id}{"assembly_name"};
   }
 
   return \%organism_names;
-
 }
 
-sub get_sample_ids{
-
+sub get_sample_ids {
   my $self = shift;
 
   my $run_tuple = $self->runs;
   my %sample_ids;
 
-  my %biorep_ids = %{$self->get_biorep_ids};
+  my %biorep_ids = %{ $self->get_biorep_ids };
 
-  foreach my $biorep_id (keys %biorep_ids){
-   
-    my $sample_ids_string = $run_tuple->{$biorep_id} {"sample_ids"};  # ie $run{"SRR1042754"}{"sample_ids"}="SAMN02434874,SAMN02434875" , could also be $run{"SRR1042754"}{"sample_ids"}= null
-    if(!$sample_ids_string ){
+  foreach my $biorep_id ( keys %biorep_ids ) {
+    my $sample_ids_string = $run_tuple->{$biorep_id}{"sample_ids"};
+
+    # Ie $run{"SRR1042754"}{"sample_ids"}="SAMN02434874,SAMN02434875" , could also be $run{"SRR1042754"}{"sample_ids"}= null
+    if ( !$sample_ids_string ) {
       return 0;
     }
-    my @sample_ids_from_string = split (/,/ , $sample_ids_string); 
+    my @sample_ids_from_string = split( /,/, $sample_ids_string );
 
-    foreach my $sample_id (@sample_ids_from_string){
+    foreach my $sample_id (@sample_ids_from_string) {
       $sample_ids{$sample_id} = 1;
     }
   }
-
   return \%sample_ids;
 }
 
-sub get_assembly_name_from_biorep_id{
-
-  my $self=shift;
+sub get_assembly_name_from_biorep_id {
+  my $self      = shift;
   my $biorep_id = shift;
   my $run_tuple = $self->runs;
-    
-  my $assembly_name =$run_tuple->{$biorep_id}{"assembly_name"};
+
+  my $assembly_name = $run_tuple->{$biorep_id}{"assembly_name"};
   return $assembly_name;
 }
 
-sub get_sample_ids_from_biorep_id{
-
-  my $self = shift;
+sub get_sample_ids_from_biorep_id {
+  my $self      = shift;
   my $biorep_id = shift;
   my $run_tuple = $self->runs;
-   
-  my @sample_ids= split (/,/,$run_tuple->{$biorep_id}{"sample_ids"});
-  
+
+  my @sample_ids = split( /,/, $run_tuple->{$biorep_id}{"sample_ids"} );
+
   return \@sample_ids;
 }
 
-sub get_biorep_ids{
-
-  my $self=shift;
+sub get_biorep_ids {
+  my $self      = shift;
   my $run_tuple = $self->runs;
 
   my %biorep_ids;
 
-  foreach my $biorep_id (keys %{$run_tuple}){
-    $biorep_ids{$biorep_id}=1;
+  foreach my $biorep_id ( keys %{$run_tuple} ) {
+    $biorep_ids{$biorep_id} = 1;
   }
 
   return \%biorep_ids;
 }
 
-sub get_biorep_ids_from_sample_id{
-
-  my $self=shift;
+sub get_biorep_ids_from_sample_id {
+  my $self      = shift;
   my $sample_id = shift;
 
   my $run_tuple = $self->runs;
 
   my %biorep_ids;
 
-  foreach my $biorep_id (keys %{$run_tuple}){
+  foreach my $biorep_id ( keys %{$run_tuple} ) {
 
-    my @sample_ids= split (/,/,$run_tuple->{$biorep_id}{"sample_ids"});  # could be "SAMPLE_IDS":"SAMN02666905,SAMN02666906"
+    # could be "SAMPLE_IDS":"SAMN02666905,SAMN02666906"
+    my @sample_ids = split( /,/, $run_tuple->{$biorep_id}{"sample_ids"} );
 
-    foreach my $sample_id_from_string (@sample_ids){
+    foreach my $sample_id_from_string (@sample_ids) {
 
-      if($sample_id_from_string eq $sample_id){  
+      if ( $sample_id_from_string eq $sample_id ) {
 
-       $biorep_ids{$biorep_id} = 1;
-     }
-   }
+        $biorep_ids{$biorep_id} = 1;
+      }
+    }
   }
-
   return \%biorep_ids;
 }
 
-sub get_assembly_names{  # of study
-
-  my $self=shift;
+sub get_assembly_names {
+  my $self      = shift;
   my $run_tuple = $self->runs;
 
   my %assembly_names;
 
-  foreach my $biorep_id (keys %{$run_tuple}){
-    
+  foreach my $biorep_id ( keys %{$run_tuple} ) {
     my $assembly_name = $run_tuple->{$biorep_id}{"assembly_name"};
-    $assembly_names {$assembly_name} = 1;
-    
+    $assembly_names{$assembly_name} = 1;
   }
-
   return \%assembly_names;
 }
 
 sub get_big_data_file_location_from_biorep_id {
-
-  my $self=shift;
+  my $self      = shift;
   my $biorep_id = shift;
 
   my $run_tuple = $self->runs;
-  
-  if(!$run_tuple->{$biorep_id}){
-    die "There is not such biorep id $biorep_id in study ".$self->{study_id}."\n";
-  }
-  
-  return $run_tuple->{$biorep_id}{"big_data_file_server_location"}; # returns a string
 
+  if ( !$run_tuple->{$biorep_id} ) {
+    die "There is not such biorep id $biorep_id in study "
+      . $self->{study_id} . "\n";
+  }
+
+  # Returns a string
+  return $run_tuple->{$biorep_id}{"big_data_file_server_location"};
 }
 
 sub get_AE_last_processed_date_from_biorep_id {
-
-  my $self=shift;
+  my $self      = shift;
   my $biorep_id = shift;
   my $run_tuple = $self->runs;
 
-  if(!$run_tuple->{$biorep_id}){
-    die "There is not such biorep id $biorep_id in study ".$self->{study_id}."\n";
+  if ( !$run_tuple->{$biorep_id} ) {
+    die "There is not such biorep id $biorep_id in study "
+      . $self->{study_id} . "\n";
   }
-    
+
   return $run_tuple->{$biorep_id}{"AE_processed_date"};
 
 }
 
-sub get_run_ids_of_biorep_id{  # could be more than 1 run id : "RUN_IDS":"DRR001028,DRR001035,DRR001042,DRR001049",
+# could be more than 1 run id : "RUN_IDS":"DRR001028,DRR001035,DRR001042,DRR001049",
+sub get_run_ids_of_biorep_id {
 
-  my $self=shift;
+  my $self      = shift;
   my $biorep_id = shift;
   my $run_tuple = $self->runs;
 
-  if(!$run_tuple->{$biorep_id}){
-    die "There is not such biorep id $biorep_id in study ".$self->{study_id}."\n";
+  if ( !$run_tuple->{$biorep_id} ) {
+    die "There is not such biorep id $biorep_id in study "
+      . $self->{study_id} . "\n";
   }
 
   my $run_string = $run_tuple->{$biorep_id}{"run_ids"};
- 
-  my @run_ids = split(/,/,$run_string);
+
+  my @run_ids = split( /,/, $run_string );
 
   return \@run_ids;
 }
 
-sub give_big_data_file_type_of_biorep_id{
-
-  my $self=shift;
+sub give_big_data_file_type_of_biorep_id {
+  my $self      = shift;
   my $biorep_id = shift;
   my $run_tuple = $self->runs;
 
-  if(!$run_tuple->{$biorep_id}){
-    die "There is not such biorep id $biorep_id in study ".$self->{study_id}."\n";
+  if ( !$run_tuple->{$biorep_id} ) {
+    die "There is not such biorep id $biorep_id in study "
+      . $self->{study_id} . "\n";
   }
 
-  my $server_location = $self->get_big_data_file_location_from_biorep_id($biorep_id);   #ftp://ftp.ebi.ac.uk/pub/databases/arrayexpress/data/atlas/rnaseq/DRR000/DRR000745/DRR000745.cram
+  my $server_location =
+    $self->get_big_data_file_location_from_biorep_id($biorep_id);
+
+  #ftp://ftp.ebi.ac.uk/pub/databases/arrayexpress/data/atlas/rnaseq/DRR000/DRR000745/DRR000745.cram
   # or ftp://ftp.ebi.ac.uk/pub/databases/arrayexpress/data/atlas/rnaseq/aggregated_techreps/E-MTAB-2037/E-MTAB-2037.biorep4.cram
   $server_location =~ /.+\/.+\.(.+)$/;
 
-  return $1; # ie cram
+  return $1;    # ie cram
 
 }
 
 # of the study : i get all its bioreps and then find the max date of all bioreps # tried with this study: http://www.ebi.ac.uk/fg/rnaseq/api/json/70/getRunsByStudy/SRP067728
-sub get_AE_last_processed_unix_date{
+sub get_AE_last_processed_unix_date {
+  my $self = shift;
 
-  my $self= shift;
+  my %biorep_ids = %{ $self->get_biorep_ids };
+  my $run_tuple  = $self->runs;
 
-  my %biorep_ids = %{$self->get_biorep_ids};
-  my $run_tuple = $self->runs;
+  my $max_date = 0;
 
-  my $max_date=0;
+  foreach my $biorep_id ( keys %biorep_ids ) {
 
-  foreach my $biorep_id (keys %biorep_ids){  
-  #each study has more than 1 processed date, as there are usually multiple bioreps in each study with different processed date each. I want to get the most current date
-    my $date=$self->get_AE_last_processed_date_from_biorep_id($biorep_id);
+    # each study has more than 1 processed date, as there are usually multiple bioreps in each study with different processed date each. I want to get the most current date
+    my $date = $self->get_AE_last_processed_date_from_biorep_id($biorep_id);
     my $unix_time = UnixDate( ParseDate($date), "%s" );
 
-    if($unix_time > $max_date){
-      $max_date = $unix_time ;
+    if ( $unix_time > $max_date ) {
+      $max_date = $unix_time;
     }
   }
 

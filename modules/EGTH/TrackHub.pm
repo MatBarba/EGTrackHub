@@ -16,20 +16,22 @@ use EGTH::TrackHub::Genome;
 # Attributes
 
 has id => (
-  is      => 'ro',
-  isa     => 'Str',
-  required  => 1,
+  is       => 'ro',
+  isa      => 'Str',
+  required => 1,
 );
 
-has [qw(
-  shortLabel
-  longLabel
-  email
-  descriptionUrl
-  )] => (
-  is     => 'rw',
-  isa    => 'Str',
-);
+has [
+  qw(
+    shortLabel
+    longLabel
+    email
+    descriptionUrl
+    )
+  ] => (
+  is  => 'rw',
+  isa => 'Str',
+  );
 
 has hub_file => (
   is      => 'ro',
@@ -51,8 +53,8 @@ has root_dir => (
 );
 
 has hub_dir => (
-  is     => 'rw',
-  isa    => 'Str',
+  is  => 'rw',
+  isa => 'Str',
 );
 
 has genomes => (
@@ -64,34 +66,32 @@ has genomes => (
 sub root_dir {
   my $self = shift;
   my ($dir) = @_;
-  
-  if (defined $dir) {
+
+  if ( defined $dir ) {
     $self->_set_root_dir($dir);
     $self->update_hub_dir;
   }
-  
+
   return $self->_get_root_dir;
 }
 
 sub update_hub_dir {
   my ($self) = shift;
-  die "Can't update hub dir if the root dir is not defined" if not defined $self->_get_root_dir;
-  
-  my $hub_dir = File::Spec->catfile(
-    $self->_get_root_dir,
-    $self->id
-  );
+  die "Can't update hub dir if the root dir is not defined"
+    if not defined $self->_get_root_dir;
+
+  my $hub_dir = File::Spec->catfile( $self->_get_root_dir, $self->id );
   $self->hub_dir($hub_dir);
 }
 
 sub create_files {
-  my ($self, $dir) = @_;
-  
-  $self->root_dir( $dir ) if $dir;
-  
+  my ( $self, $dir ) = @_;
+
+  $self->root_dir($dir) if $dir;
+
   # Make trackhub dir
   make_path $self->hub_dir;
-  
+
   # Generate files
   $self->make_hub_file();
   $self->make_genomes_file();
@@ -102,10 +102,11 @@ sub create_files {
 
 sub make_hub_file {
   my $self = shift;
-  
-  croak "Can't create hub file without a directory." if (not defined $self->hub_dir);
-  my $hub_path = File::Spec->catfile($self->hub_dir, $self->hub_file);
-  
+
+  croak "Can't create hub file without a directory."
+    if ( not defined $self->hub_dir );
+  my $hub_path = File::Spec->catfile( $self->hub_dir, $self->hub_file );
+
   make_path $self->hub_dir;
   open my $hub_fh, '>', $hub_path;
   print $hub_fh $self->hub_file_content;
@@ -115,7 +116,7 @@ sub make_hub_file {
 
 sub hub_file_content {
   my $self = shift;
-  
+
   my %content = (
     hub            => $self->id,
     shortLabel     => $self->shortLabel,
@@ -129,40 +130,39 @@ sub hub_file_content {
     shortLabel
     longLabel
     genomesFile
-    email 
+    email
     descriptionUrl
   );
-  
+
   my @lines;
   my %missing_keys;
   for my $key (@content_order) {
-    if (defined $content{$key}) {
+    if ( defined $content{$key} ) {
       push @lines, "$key $content{$key}";
-    } else {
+    }
+    else {
       $missing_keys{$key}++;
     }
   }
-  
+
   #if (%missing_keys) {
   #  croak "Missing keys: " . join(', ', sort keys %missing_keys);
   #}
-  
-  return join("\n", @lines) . "\n";
+
+  return join( "\n", @lines ) . "\n";
 }
 
 sub make_genomes_file {
   my $self = shift;
-  
-  if (not defined $self->hub_dir) {
+
+  if ( not defined $self->hub_dir ) {
     croak "Can't create genomes file without a directory.";
-  } elsif (not keys %{ $self->genomes }) {
+  }
+  elsif ( not keys %{ $self->genomes } ) {
     croak "Can't create genomes files without any genome assemblies";
   }
-  my $genomes_path = File::Spec->catfile(
-    $self->hub_dir,
-    $self->genomes_file
-  );
-  
+  my $genomes_path = File::Spec->catfile( $self->hub_dir, $self->genomes_file );
+
   open my $genomes_fh, '>', $genomes_path;
   print $genomes_fh $self->genomes_file_content;
   close $genomes_fh;
@@ -171,13 +171,13 @@ sub make_genomes_file {
 
 sub genomes_file_content {
   my $self = shift;
-  
-  if (not keys %{ $self->genomes }) {
+
+  if ( not keys %{ $self->genomes } ) {
     croak "Can't create genomes files without any genome assemblies";
   }
   my @lines;
-  for my $genome_id (keys %{ $self->genomes }) {
-    my $genome = $self->genomes->{ $genome_id };
+  for my $genome_id ( keys %{ $self->genomes } ) {
+    my $genome = $self->genomes->{$genome_id};
     push @lines, $genome->config_text;
   }
   return join "\n\n", @lines;
@@ -185,9 +185,9 @@ sub genomes_file_content {
 
 sub make_genomes_dirs {
   my $self = shift;
-  
-  for my $genome_id (keys %{ $self->genomes }) {
-    my $genome = $self->genomes->{ $genome_id };
+
+  for my $genome_id ( keys %{ $self->genomes } ) {
+    my $genome = $self->genomes->{$genome_id};
     $genome->make_genome_dir;
   }
   return 1;
@@ -195,9 +195,9 @@ sub make_genomes_dirs {
 
 sub make_trackdb_files {
   my $self = shift;
-  
-  for my $genome_id (keys %{ $self->genomes }) {
-    my $genome = $self->genomes->{ $genome_id };
+
+  for my $genome_id ( keys %{ $self->genomes } ) {
+    my $genome = $self->genomes->{$genome_id};
     $genome->make_trackdb_file;
   }
   return 1;
@@ -206,8 +206,8 @@ sub make_trackdb_files {
 sub add_genome {
   my $self = shift;
   my ($genome) = @_;
-  
-  if (defined $self->genomes->{ $genome->id }) {
+
+  if ( defined $self->genomes->{ $genome->id } ) {
     croak "The trackhub already has a genome named $genome->id";
   }
   my $genomes = $self->genomes->{ $genome->id } = $genome;
@@ -217,11 +217,11 @@ sub add_genome {
 
 sub assembly_map {
   my $self = shift;
-  
+
   my %map;
   my %genomes = %{ $self->genomes };
-  for my $genome_id (keys %genomes) {
-    $map{ genome_id } = $genomes{ $genome_id }->{assembly_accession};
+  for my $genome_id ( keys %genomes ) {
+    $map{genome_id} = $genomes{$genome_id}->{assembly_accession};
   }
 }
 

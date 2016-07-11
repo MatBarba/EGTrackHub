@@ -2,12 +2,14 @@ package EGTH::EG;
 
 # this module is written in order to have a method that returns the right assembly name in the cases where AE gives the assembly accession instead of the assembly name (due to our bug)
 
-use strict ;
+use strict;
 use warnings;
 
 use EGTH::JsonResponse;
 
-my $ens_genomes_plants_call = "http://rest.ensemblgenomes.org/info/genomes/division/EnsemblPlants?content-type=application/json"; # to get all ensembl plants names currently
+my $ens_genomes_plants_call =
+  "http://rest.ensemblgenomes.org/info/genomes/division/EnsemblPlants?content-type=application/json"
+  ;    # to get all ensembl plants names currently
 
 # Cache variables
 my %plant_names;
@@ -30,19 +32,22 @@ sub get_assembly_name_using_species_name {
   load_EG_plants() if not %species_name_assembly_name_hash;
   my $assembly_name = $species_name_assembly_name_hash{$species_name};
 
-  if (not defined $assembly_name) {
-    die "The species name: $species_name is not in EG REST response ($ens_genomes_plants_call) in the species field\n";
+  if ( not defined $assembly_name ) {
+    die
+      "The species name: $species_name is not in EG REST response ($ens_genomes_plants_call) in the species field\n";
   }
   return $assembly_name;
 }
 
 sub load_EG_plants {
+
   #test server - new assemblies:
   #my $ens_genomes_plants_call = "http://test.rest.ensemblgenomes.org/info/genomes/division/EnsemblPlants?content-type=application/json";
 
-  my @array_response_plants_assemblies; 
+  my @array_response_plants_assemblies;
 
-  my $array_response_plants_assemblies = EGTH::JsonResponse::get_Json_response($ens_genomes_plants_call);  
+  my $array_response_plants_assemblies =
+    EGTH::JsonResponse::get_Json_response($ens_genomes_plants_call);
 
   # response:
   #[{"base_count":"479985347","is_reference":null,"division":"EnsemblPlants","has_peptide_compara":"1","dbname":"physcomitrella_patens_core_28_81_11","genebuild":"2011-03-JGI","assembly_level":"scaffold","serotype":null,
@@ -55,16 +60,19 @@ sub load_EG_plants {
   #Theobroma_cacao_20110822	GCA_000403535.1
 
   foreach my $plant_href (@$array_response_plants_assemblies) {
-    $plant_names{$plant_href->{"species"}} = 1;
+    $plant_names{ $plant_href->{"species"} } = 1;
 
-    $species_name_assembly_name_hash {$plant_href->{"species"} } =  $plant_href->{"assembly_name"};
-    
+    $species_name_assembly_name_hash{ $plant_href->{"species"} } =
+      $plant_href->{"assembly_name"};
+
     # for triticum_aestivum that is without assembly id,
     # I store 0000, this is specifically for the THR to work
-    if (not $plant_href->{"assembly_id"}) {
+    if ( not $plant_href->{"assembly_id"} ) {
       $species_name_assembly_id_hash{ $plant_href->{"species"} } = "0000";
-    } else {
-      $species_name_assembly_id_hash{ $plant_href->{"species"} } = $plant_href->{"assembly_id"};
+    }
+    else {
+      $species_name_assembly_id_hash{ $plant_href->{"species"} } =
+        $plant_href->{"assembly_id"};
     }
   }
 }

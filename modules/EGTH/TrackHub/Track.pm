@@ -11,24 +11,28 @@ use Moose;
 use namespace::autoclean;
 
 # Attributes
-has [qw(
-  track
-  shortLabel
-  )] => (
-  is        => 'ro',
-  isa       => 'Str',
-  required  => 1,
-);
+has [
+  qw(
+    track
+    shortLabel
+    )
+  ] => (
+  is       => 'ro',
+  isa      => 'Str',
+  required => 1,
+  );
 
-has [qw(
-  type
-  longLabel
-  bigDataUrl
-  html
-  )] => (
-  is     => 'rw',
-  isa    => 'Str',
-);
+has [
+  qw(
+    type
+    longLabel
+    bigDataUrl
+    html
+    )
+  ] => (
+  is  => 'rw',
+  isa => 'Str',
+  );
 
 has visibility => (
   is      => 'rw',
@@ -49,40 +53,40 @@ my @order = qw(
 has _order => (
   is      => 'rw',
   isa     => 'ArrayRef',
-  default => sub { [ @order ] },
+  default => sub { [@order] },
 );
 
 use overload '""' => 'to_string';
 
 sub _prepare_data {
   my $self = shift;
-  
+
   my %data = (
-    track       => $self->track,
-    type        => $self->type,
-    shortLabel  => $self->shortLabel,
-    longLabel   => $self->longLabel,
-    bigDataUrl  => $self->bigDataUrl,
-    html        => $self->html,
-    visibility  => $self->visibility,
+    track      => $self->track,
+    type       => $self->type,
+    shortLabel => $self->shortLabel,
+    longLabel  => $self->longLabel,
+    bigDataUrl => $self->bigDataUrl,
+    html       => $self->html,
+    visibility => $self->visibility,
   );
-  
+
   return %data;
 }
-            
+
 sub to_string {
   my $self = shift;
   my @lines;
-  
+
   my %data = $self->_prepare_data;
-  
-  for my $item (@{ $self->_order }) {
-    if (defined $data{$item}) {
+
+  for my $item ( @{ $self->_order } ) {
+    if ( defined $data{$item} ) {
       push @lines, $item . ' ' . $data{$item};
     }
   }
-  
-  return join("\n", @lines) . "\n";
+
+  return join( "\n", @lines ) . "\n";
 }
 
 __PACKAGE__->meta->make_immutable;

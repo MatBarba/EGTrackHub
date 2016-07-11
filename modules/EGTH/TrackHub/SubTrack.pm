@@ -20,13 +20,14 @@ has parent => (
 # Rewrite parent subs
 sub BUILD {
   my $self = shift;
-  push @{ $self->_order }, 'parent' if not grep { $_ eq 'parent' } @{ $self->_order };
-};
+  push @{ $self->_order }, 'parent'
+    if not grep { $_ eq 'parent' } @{ $self->_order };
+}
 
 sub _prepare_data {
   my $self = shift;
   my %data = $self->SUPER::_prepare_data;
-  $data{ parent } = $self->parent;
+  $data{parent} = $self->parent;
   return %data;
 }
 

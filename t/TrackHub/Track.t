@@ -16,11 +16,11 @@ use_ok('EGTH::TrackHub::Track');
 
 # Prepare dummy data
 my %tr = (
-  track       => 'track_1',
-  shortLabel  => 'track_title_1',
-  longLabel   => 'Description of track 1',
-  type        => 'bigwig',
-  bigDataUrl  => 'ftp://example.com/track1.bw',
+  track      => 'track_1',
+  shortLabel => 'track_title_1',
+  longLabel  => 'Description of track 1',
+  type       => 'bigwig',
+  bigDataUrl => 'ftp://example.com/track1.bw',
 );
 my $expected_trackdb_text = "track $tr{track}
 type $tr{type}
@@ -30,13 +30,13 @@ bigDataUrl $tr{bigDataUrl}
 visibility hide
 ";
 
-
 dies_ok {
   my $track = EGTH::TrackHub::Track->new;
-} "Creating a track without id should fail";
+}
+"Creating a track without id should fail";
 
 ok(
-  my $track = EGTH::TrackHub::Track->new( %tr ),
+  my $track = EGTH::TrackHub::Track->new(%tr),
   "Create 1 generic track"
 );
 

@@ -16,13 +16,13 @@ use_ok('EGTH::TrackHub::SubTrack');
 
 # Prepare dummy data
 my %tr = (
-  track       => 'track_1',
-  shortLabel  => 'track_title_1',
-  longLabel   => 'Description of track 1',
-  type        => 'bigwig',
-  bigDataUrl  => 'ftp://example.com/track1.bw',
+  track      => 'track_1',
+  shortLabel => 'track_title_1',
+  longLabel  => 'Description of track 1',
+  type       => 'bigwig',
+  bigDataUrl => 'ftp://example.com/track1.bw',
 );
-my $parent_id = 'supertrack_A';
+my $parent_id             = 'supertrack_A';
 my $expected_trackdb_text = "track $tr{track}
 type $tr{type}
 shortLabel $tr{shortLabel}
@@ -34,15 +34,17 @@ parent $parent_id
 
 dies_ok {
   my $track = EGTH::TrackHub::SubTrack->new;
-} "Creating a track without id should fail";
+}
+"Creating a track without id should fail";
 
 dies_ok {
-  my $track = EGTH::TrackHub::SubTrack->new( %tr ),
-} "Creating a subtrack without parent should fail";
+  my $track = EGTH::TrackHub::SubTrack->new(%tr),
+}
+"Creating a subtrack without parent should fail";
 
 $tr{parent} = $parent_id;
 ok(
-  my $track = EGTH::TrackHub::SubTrack->new( %tr ),
+  my $track = EGTH::TrackHub::SubTrack->new(%tr),
   "Create 1 generic track"
 );
 
@@ -54,5 +56,4 @@ cmp_ok(
 );
 
 done_testing();
-
 

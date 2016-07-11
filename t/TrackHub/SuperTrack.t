@@ -17,18 +17,18 @@ use_ok('EGTH::TrackHub::Track');
 
 # Prepare dummy data
 my %super = (
-  track       => 'supertrack_1',
-  shortLabel  => 'Supertrack_title_1',
-  longLabel   => 'Description of supertrack 1',
-  type        => 'bigwig',
+  track      => 'supertrack_1',
+  shortLabel => 'Supertrack_title_1',
+  longLabel  => 'Description of supertrack 1',
+  type       => 'bigwig',
 );
 my %sub = (
-  track       => 'track_1',
-  shortLabel  => 'track_title_1',
-  longLabel   => 'Description of track 1',
-  type        => 'bigwig',
-  bigDataUrl  => 'ftp://example.com/track1.bw',
-  parent      => $super{track},
+  track      => 'track_1',
+  shortLabel => 'track_title_1',
+  longLabel  => 'Description of track 1',
+  type       => 'bigwig',
+  bigDataUrl => 'ftp://example.com/track1.bw',
+  parent     => $super{track},
 );
 
 my $expected_super_text = "track $super{track}
@@ -44,19 +44,21 @@ longLabel $sub{longLabel}
 bigDataUrl $sub{bigDataUrl}
 visibility hide
 ";
-my $expected_trackdb_text = $expected_super_text . "\n" . $expected_sub_text . "parent $sub{parent}\n";
+my $expected_trackdb_text =
+  $expected_super_text . "\n" . $expected_sub_text . "parent $sub{parent}\n";
 
 dies_ok {
   my $supertrack = EGTH::TrackHub::SuperTrack->new;
-} "Creating a super-track without id should fail";
+}
+"Creating a super-track without id should fail";
 
 ok(
-  my $supertrack = EGTH::TrackHub::SuperTrack->new( %super ),
+  my $supertrack = EGTH::TrackHub::SuperTrack->new(%super),
   "Create 1 super-track"
 );
 
 ok(
-  my $subtrack = EGTH::TrackHub::Track->new( %sub ),
+  my $subtrack = EGTH::TrackHub::Track->new(%sub),
   "Create 1 sub-track as a normal track"
 );
 cmp_ok(
@@ -68,10 +70,11 @@ cmp_ok(
 
 dies_ok {
   $supertrack->add_sub_track,
-} "Adding an undef sub-track should fail";
+}
+"Adding an undef sub-track should fail";
 
 ok(
-  $supertrack->add_sub_track( $subtrack ),
+  $supertrack->add_sub_track($subtrack),
   "Add the subtrack to the super-track"
 );
 
@@ -83,6 +86,4 @@ cmp_ok(
 );
 
 done_testing();
-
-
 

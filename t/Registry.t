@@ -14,7 +14,7 @@ use EGTH::AEStudy;
 # -----
 # checks if the module can load
 # -----
-use_ok('EGTH::Registry');  
+use_ok('EGTH::Registry');
 
 # -----
 # test constructor
@@ -22,22 +22,26 @@ use_ok('EGTH::Registry');
 my $user = $ENV{'THR_USER'};
 my $pass = $ENV{'THR_PASS'};
 
-SKIP : {
-  skip "credentials needed to test the registry API (define THR_USER and THR_PASS in the environment)" unless $user and $pass;
-  
+SKIP: {
+  skip
+    "credentials needed to test the registry API (define THR_USER and THR_PASS in the environment)"
+    unless $user and $pass;
+
   # First, test the login
   dies_ok {
     my $registry = EGTH::Registry->new;
-  } "Login without credentials fails";
-  
+  }
+  "Login without credentials fails";
+
   # Wrong credentials
   dies_ok {
     my $registry = EGTH::Registry->new(
-      user  => "00000000000000000",
-      pass  => "password"
+      user => "00000000000000000",
+      pass => "password"
     );
-  } "Login with wrong credentials fails";
-  
+  }
+  "Login with wrong credentials fails";
+
   # Actual credentials
   ok(
     my $registry = EGTH::Registry->new(
@@ -55,11 +59,12 @@ SKIP : {
 
   dies_ok {
     EGTH::Registry->new("blabla");
-  } 'Wrong object construction dies';
-  
-  ok($registry->is_public == 0, "The registry is not public by default");
-  ok($registry->is_public(1) == 1, "Set the registry to public mode");
-  ok($registry->is_public(0) == 0, "Set the registry back to private mode");
+  }
+  'Wrong object construction dies';
+
+  ok( $registry->is_public == 0,    "The registry is not public by default" );
+  ok( $registry->is_public(1) == 1, "Set the registry to public mode" );
+  ok( $registry->is_public(0) == 0, "Set the registry back to private mode" );
 
   # Register 1 trackhub
   dies_ok {
@@ -67,17 +72,21 @@ SKIP : {
       "trackhub_id",
       "https://wrong.address/hub.txt"
     );
-  } "Can't register a trackhub with wrong hub.txt url";
-  
-  my $th_id      = 'RNAseq_group_211';
-  my $hub_url    = 'http://www.ebi.ac.uk/~mbarba/rnaseq/hubs/anopheles_minimus/RNAseq_group_211/hub.txt';
+  }
+  "Can't register a trackhub with wrong hub.txt url";
+
+  my $th_id = 'RNAseq_group_211';
+  my $hub_url =
+    'http://www.ebi.ac.uk/~mbarba/rnaseq/hubs/anopheles_minimus/RNAseq_group_211/hub.txt';
   my %assemblies = (
+
     #'Oryza_brachyantha.v1.4b' => 'GCA_000231095.2'
     'AminM1' => 'GCA_000349025.1',
   );
-  my $assemblies_list = join(',', (map { "$_,$assemblies{$_}" } keys %assemblies));
-  
-  ok (
+  my $assemblies_list =
+    join( ',', ( map { "$_,$assemblies{$_}" } keys %assemblies ) );
+
+  ok(
     $registry->register_track_hub(
       $th_id,
       $hub_url,
@@ -90,7 +99,7 @@ SKIP : {
     $registry->delete_track_hub($th_id),
     "Can delete a trackhub"
   );
-  
+
 }
 
 __END__

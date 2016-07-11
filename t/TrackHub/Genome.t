@@ -16,7 +16,7 @@ use_ok('EGTH::TrackHub::Genome');
 
 # Prepare dummy data
 my %ex = (
-  id  => 'genome_id_1',
+  id    => 'genome_id_1',
   insdc => 'GCA00000001.1',
 );
 my %tr = (
@@ -36,10 +36,11 @@ bigDataUrl $tr{bigDataUrl}
 # Test creation of a Genome
 throws_ok {
   my $gen = EGTH::TrackHub::Genome->new();
-  } 'Moose::Exception::AttributeIsRequired',
+}
+'Moose::Exception::AttributeIsRequired',
   "Creating a Genome object without any parameters should fail";
 
-ok (
+ok(
   my $gen = EGTH::TrackHub::Genome->new(%ex),
   "Creating a Genome object with all required fields"
 );
@@ -57,12 +58,13 @@ cmp_ok(
 
 dies_ok {
   $gen->make_genome_dir
-  }  "Create genome dir without defined dir should fail";
+}
+"Create genome dir without defined dir should fail";
 
 # Create genome dir
 my $tmp_dir = File::Temp->newdir;
 ok(
-  $gen->hub_dir($tmp_dir . ''),
+  $gen->hub_dir( $tmp_dir . '' ),
   "Set directory to $tmp_dir"
 );
 ok(
@@ -82,7 +84,8 @@ ok(
 # Now create the trackDB file
 dies_ok {
   $gen->make_trackdb_file;
-}  "Create trackdb file without tracks should die";
+}
+"Create trackdb file without tracks should die";
 
 # Add a track and create the file
 #ok(
@@ -91,12 +94,12 @@ dies_ok {
 #);
 
 ok(
-  my $track = EGTH::TrackHub::Track->new( %tr ),
+  my $track = EGTH::TrackHub::Track->new(%tr),
   "Create 1 generic track"
 );
 
 ok(
-  $gen->add_track( $track ),
+  $gen->add_track($track),
   "Add 1 generic track"
 );
 

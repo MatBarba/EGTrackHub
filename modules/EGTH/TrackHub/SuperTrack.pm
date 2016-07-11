@@ -12,9 +12,7 @@ use EGTH::TrackHub::SubTrack;
 use namespace::autoclean;
 
 # Attributes
-has '+visibility' => (
-  default => undef,
-);
+has '+visibility' => ( default => undef, );
 
 has show => (
   is      => 'rw',
@@ -23,21 +21,21 @@ has show => (
 );
 
 has sub_tracks => (
-  is       => 'rw',
-  isa      => 'ArrayRef[EGTH::TrackHub::Track]',
-  default  => sub { [] },
+  is      => 'rw',
+  isa     => 'ArrayRef[EGTH::TrackHub::Track]',
+  default => sub { [] },
 );
 
 # Rewrite parent subs
 sub BUILD {
   my $self = shift;
   push @{ $self->_order }, 'superTrack';
-};
+}
 
 sub _prepare_data {
   my $self = shift;
   my %data = $self->SUPER::_prepare_data;
-  $data{ superTrack} = $self->show ? 'on show' : 'on';
+  $data{superTrack} = $self->show ? 'on show' : 'on';
   return %data;
 }
 
@@ -45,24 +43,25 @@ sub _prepare_data {
 sub add_sub_track {
   my $self = shift;
   my ($track) = @_;
-  
+
   # Shallow copy of the track data
   my %subtrack_data = %$track;
-  
+
   # Add the supertrack as parent (required by the subtrack)
-  $subtrack_data{ parent } = $self->track;
-  
+  $subtrack_data{parent} = $self->track;
+
   # Create the subtrack object
-  my $subtrack = EGTH::TrackHub::SubTrack->new( %subtrack_data );
-  
+  my $subtrack = EGTH::TrackHub::SubTrack->new(%subtrack_data);
+
   push @{ $self->sub_tracks }, $subtrack;
-  
+
   # Also, check that the super-track has the same type as the newly added subtrack
   my $sub_type   = $subtrack->type;
   my $super_type = $self->type;
-  if (not defined $super_type) {
-    $self->type( $sub_type );
-  } elsif ($super_type ne $sub_type) {
+  if ( not defined $super_type ) {
+    $self->type($sub_type);
+  }
+  elsif ( $super_type ne $sub_type ) {
     carp "WARNING: The supertrack has mixed types ($sub_type, $super_type)";
   }
   return 1;
@@ -70,18 +69,18 @@ sub add_sub_track {
 
 sub to_string {
   my $self = shift;
-  
+
   my @lines;
-  
+
   # Print the supertrack-specific fields
   push @lines, $self->SUPER::to_string;
-  
+
   # Add each subtrack
-  for my $sub_track (@{ $self->sub_tracks }) {
+  for my $sub_track ( @{ $self->sub_tracks } ) {
     push @lines, $sub_track->to_string;
   }
-  
-  return join("\n", @lines);
+
+  return join( "\n", @lines );
 }
 
 __PACKAGE__->meta->make_immutable;

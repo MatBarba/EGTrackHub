@@ -17,30 +17,32 @@ my $LOGIN_API    = $SERVER . '/api/login';
 my $LOGOUT_API   = $SERVER . '/api/logout';
 my $TRACKHUB_API = $SERVER . '/api/trackhub';
 
-$| = 1; 
+$| = 1;
 
 # Attributes
-has [qw(
-  user
-  password
-)] => (
-  is        => 'ro',
-  isa       => 'Str',
-  required  => 1,
-);
+has [
+  qw(
+    user
+    password
+    )
+  ] => (
+  is       => 'ro',
+  isa      => 'Str',
+  required => 1,
+  );
 
 has auth_token => (
-  is        => 'ro',
-  isa       => 'Str',
-  lazy      => 1,
-  builder   => '_get_token',
+  is      => 'ro',
+  isa     => 'Str',
+  lazy    => 1,
+  builder => '_get_token',
 );
 
 has agent => (
-  is        => 'ro',
-  isa       => 'LWP::UserAgent',
-  lazy      => 1,
-  builder   => '_build_agent',
+  is      => 'ro',
+  isa     => 'LWP::UserAgent',
+  lazy    => 1,
+  builder => '_build_agent',
 );
 
 has is_public => (
@@ -59,46 +61,49 @@ sub _get_token {
   my $self = shift;
   my $user = $self->user;
   my $pass = $self->password;
-  
-  if (    not defined $SERVER
-      and not defined $user
-      and not defined $pass
-  ) {
-    croak "Some required parameters are missing when trying to login in the TrackHub Registry";
+
+  if (  not defined $SERVER
+    and not defined $user
+    and not defined $pass )
+  {
+    croak
+      "Some required parameters are missing when trying to login in the TrackHub Registry";
   }
 
   # Request a token
   my $request = GET($LOGIN_API);
-  $request->headers->authorization_basic($user, $pass);
+  $request->headers->authorization_basic( $user, $pass );
   my $response = $self->agent->request($request);
 
   # Check answer
-  if (not $response->is_success) {
+  if ( not $response->is_success ) {
     croak "Unable to login to Registry: " . $response->status_line;
   }
-  my $auth_token = from_json($response->content)->{auth_token};
-  
+  my $auth_token = from_json( $response->content )->{auth_token};
+
   # Check token
-  if (not defined $auth_token) {
-    croak "Undefined authentication token when trying to login in the Track Hub Registry";
+  if ( not defined $auth_token ) {
+    croak
+      "Undefined authentication token when trying to login in the Track Hub Registry";
   }
-  
+
   return $auth_token;
 }
 
 sub DEMOLISH {
   my $self = shift;
-  
-  if (defined $self->user
-      and defined $self->password
-      and defined $self->auth_token) {
+
+  if (  defined $self->user
+    and defined $self->password
+    and defined $self->auth_token )
+  {
     my $request = GET($LOGOUT_API);
     $request->headers->header(
       user       => $self->user,
       auth_token => $self->auth_token
     );
     my $response = $self->agent->request($request);
-    if (not $response->is_success) {
+    if ( not $response->is_success ) {
       croak "Unable to logout correctly: " . $response->status_line;
     }
   }
@@ -106,31 +111,33 @@ sub DEMOLISH {
 
 sub _request {
   my $self = shift;
-  my ($url, $action) = @_;
-  
+  my ( $url, $action ) = @_;
+
   my $num_repeats = 3;
   my $wait_time   = 5;
-  
+
   my $request;
-  if (     $action eq 'GET') {
+  if ( $action eq 'GET' ) {
     $request = GET($url);
-  } elsif ($action eq 'DELETE') {
+  }
+  elsif ( $action eq 'DELETE' ) {
     $request = DELETE($url);
-  } elsif ($action eq 'POST') {
+  }
+  elsif ( $action eq 'POST' ) {
     $request = POST($url);
   }
-  
+
   $request->headers->header(
     user       => $self->user,
     auth_token => $self->auth_token,
   );
-  
+
   # Repeat the request
-  for my $rep (1..$num_repeats) {
+  for my $rep ( 1 .. $num_repeats ) {
     my $response      = $self->agent->request($request);
     my $response_code = $response->code;
-    if ($response->is_success) {
-      return from_json($response->content);
+    if ( $response->is_success ) {
+      return from_json( $response->content );
     }
     sleep $wait_time;
   }
@@ -140,7 +147,7 @@ sub _request {
 sub register_track_hubs {
   my $self = shift;
   my @hubs = @_;
-  
+
   for my $hub (@hubs) {
     $self->new_register_track_hub(
       id           => $hub->id,
@@ -153,34 +160,28 @@ sub register_track_hubs {
 sub new_register_track_hub {
   my $self = shift;
   my %pars = @_;
-  
-  $self->register_track_hub(
-    $pars{id},
-    $pars{url},
-    $pars{assembly_map}
-  );
+
+  $self->register_track_hub( $pars{id}, $pars{url}, $pars{assembly_map} );
 }
 
 sub register_track_hub {
   my $self = shift;
 
-  my ($track_hub_id,
-      $hub_url,
-      $assembly_mapping,
-  ) = @_;
-  
-  croak "No track hub id provided"                       if not defined $track_hub_id;
-  croak "No hub.txt url provided"                        if not defined $hub_url;
-  croak "No assembly mapping (name,accession) provided"  if not defined $assembly_mapping;
+  my ( $track_hub_id, $hub_url, $assembly_mapping, ) = @_;
 
-  my %assemblies = split(/,/, $assembly_mapping);
+  croak "No track hub id provided" if not defined $track_hub_id;
+  croak "No hub.txt url provided"  if not defined $hub_url;
+  croak "No assembly mapping (name,accession) provided"
+    if not defined $assembly_mapping;
+
+  my %assemblies = split( /,/, $assembly_mapping );
 
   my $trackhub_content = {
-    url        => $hub_url,
-    type       => 'transcriptomics',
+    url  => $hub_url,
+    type => 'transcriptomics',
   };
   $trackhub_content->{assemblies} = \%assemblies if %assemblies;
-  $trackhub_content->{public}     = 0 if not $self->is_public;
+  $trackhub_content->{public}     = 0            if not $self->is_public;
 
   my $request = POST(
     $TRACKHUB_API,
@@ -191,18 +192,21 @@ sub register_track_hub {
     user       => $self->user,
     auth_token => $self->auth_token
   );
-  
+
   my $num_repeat = 1;
   my $response;
-  for my $repeat (1..$num_repeat) {
+  for my $repeat ( 1 .. $num_repeat ) {
     $response = $self->agent->request($request);
     if ( $response->is_success and $response->code == 201 ) {
       return $track_hub_id;
-    } else {
+    }
+    else {
       sleep 5;
     }
   }
-  croak "Couldn't register the track hub $track_hub_id: " . $response->status_line . "\n" . $response->as_string;
+  croak "Couldn't register the track hub $track_hub_id: "
+    . $response->status_line . "\n"
+    . $response->as_string;
 }
 
 sub delete_track_hub {
@@ -215,75 +219,86 @@ sub delete_track_hub {
 
   my %trackhubs;
 
-  if ($track_hub_id eq "all") {
+  if ( $track_hub_id eq "all" ) {
     %trackhubs = %{ $self->give_all_Registered_track_hub_names() };
-  } else {
+  }
+  else {
     $trackhubs{$track_hub_id} = 1;
   }
 
   my $del_count = 0;
 
-  foreach my $track_hub_id (sort keys %trackhubs) {
-    $logger->info( "$del_count\tDeleting trackhub ". $track_hub_id );
-    my $url = "$TRACKHUB_API/$track_hub_id";
+  foreach my $track_hub_id ( sort keys %trackhubs ) {
+    $logger->info( "$del_count\tDeleting trackhub " . $track_hub_id );
+    my $url     = "$TRACKHUB_API/$track_hub_id";
     my $request = DELETE($url);
     $request->headers->header(
       user       => $self->user,
       auth_token => $auth_token
     );
-    my $response = $self->agent->request($request);
-    my $response_code= $response->code;
-    
-    if ($response->is_success and $response->code == 200) {
-       $del_count++;
-     } else {
-      croak "Couldn't delete the track hub $track_hub_id: " . $response->status_line . "\n" . $response->as_string;
-     }
+    my $response      = $self->agent->request($request);
+    my $response_code = $response->code;
+
+    if ( $response->is_success and $response->code == 200 ) {
+      $del_count++;
+    }
+    else {
+      croak "Couldn't delete the track hub $track_hub_id: "
+        . $response->status_line . "\n"
+        . $response->as_string;
+    }
   }
   return $del_count;
 }
 
-sub give_all_Registered_track_hub_names{
+sub give_all_Registered_track_hub_names {
 
   my $self = shift;
 
-  my $registry_user_name= $self->user;
+  my $registry_user_name = $self->user;
   my %track_hub_names;
 
   my $auth_token = eval { $self->auth_token };
 
   my $request = GET("$SERVER/api/trackhub");
-  $request->headers->header(user => $registry_user_name);
-  $request->headers->header(auth_token => $auth_token);
+  $request->headers->header( user       => $registry_user_name );
+  $request->headers->header( auth_token => $auth_token );
   my $response = $self->agent->request($request);
 
-  my $response_code= $response->code;
+  my $response_code = $response->code;
 
-  if($response_code == 200) {
-    my $trackhubs = from_json($response->content);
-    map { $track_hub_names{$_->{name}} = 1 } @{$trackhubs}; # it is same as : $track_hub_names{$trackhubs->[$i]{name}}=1; 
+  if ( $response_code == 200 ) {
+    my $trackhubs = from_json( $response->content );
+    map { $track_hub_names{ $_->{name} } = 1 } @{$trackhubs}; # it is same as : $track_hub_names{$trackhubs->[$i]{name}}=1;
 
-  }else{
+  }
+  else {
 
-    print "\tCouldn't get Registered track hubs with the first attempt when calling method give_all_Registered_track_hub_names in script ".__FILE__."\n";
-    print "Got error ".$response->code ." , ". $response->content."\n";
-    my $flag_success=0;
+    print
+      "\tCouldn't get Registered track hubs with the first attempt when calling method give_all_Registered_track_hub_names in script "
+      . __FILE__ . "\n";
+    print "Got error " . $response->code . " , " . $response->content . "\n";
+    my $flag_success = 0;
 
-    for(my $i=1; $i<=10; $i++) {
+    for ( my $i = 1 ; $i <= 10 ; $i++ ) {
 
-      print "\t".$i .") Retrying attempt: Retrying after 5s...\n";
+      print "\t" . $i . ") Retrying attempt: Retrying after 5s...\n";
       sleep 5;
       $response = $self->agent->request($request);
-      if($response->is_success){
-        $flag_success =1 ;
-        my $trackhubs = from_json($response->content);
-        map { $track_hub_names{$_->{name}} = 1 } @{$trackhubs};
+      if ( $response->is_success ) {
+        $flag_success = 1;
+        my $trackhubs = from_json( $response->content );
+        map { $track_hub_names{ $_->{name} } = 1 } @{$trackhubs};
         last;
       }
     }
 
-    die "Couldn't get list of track hubs in the Registry when calling method give_all_Registered_track_hub_names in script: ".__FILE__." line ".__LINE__."\n"
-    unless $flag_success ==1;
+    die
+      "Couldn't get list of track hubs in the Registry when calling method give_all_Registered_track_hub_names in script: "
+      . __FILE__
+      . " line "
+      . __LINE__ . "\n"
+      unless $flag_success == 1;
   }
 
   return \%track_hub_names;
@@ -294,73 +309,94 @@ sub get_Registry_hub_last_update { # gives the last update date(unix time) of th
 
   my $self = shift;
 
-  my $name = shift;  # track hub name, ie study_id
+  my $name = shift;                # track hub name, ie study_id
 
   defined $name
-    or print "Track hub name parameter required to get the track hub's last update date in the Track Hub Registry\n" and return 0;
+    or print
+    "Track hub name parameter required to get the track hub's last update date in the Track Hub Registry\n"
+    and return 0;
 
-  my $registry_user_name= $self->user;
+  my $registry_user_name = $self->user;
 
   my $auth_token = $self->auth_token;
- 
+
   my $request = GET("$SERVER/api/trackhub/$name");
-  $request->headers->header(user       => $registry_user_name);
-  $request->headers->header(auth_token => $auth_token);
+  $request->headers->header( user       => $registry_user_name );
+  $request->headers->header( auth_token => $auth_token );
   my $response = $self->agent->request($request);
   my $hub;
 
-  if ($response->is_success) {
-    $hub = from_json($response->content);
-  } else {  
+  if ( $response->is_success ) {
+    $hub = from_json( $response->content );
+  }
+  else {
 
-    print "\tCouldn't get Registered track hub $name with the first attempt when calling method get_Registry_hub_last_update in script ".__FILE__."\n";
-    my $flag_success=0;
+    print
+      "\tCouldn't get Registered track hub $name with the first attempt when calling method get_Registry_hub_last_update in script "
+      . __FILE__ . "\n";
+    my $flag_success = 0;
 
-    for(my $i=1; $i<=10; $i++) {
+    for ( my $i = 1 ; $i <= 10 ; $i++ ) {
 
-      print "\t".$i .") Retrying attempt: Retrying after 5s...\n";
+      print "\t" . $i . ") Retrying attempt: Retrying after 5s...\n";
       sleep 5;
       $response = $self->agent->request($request);
-      if($response->is_success){
-        $hub = from_json($response->content);
-        $flag_success =1 ;
+      if ( $response->is_success ) {
+        $hub          = from_json( $response->content );
+        $flag_success = 1;
         last;
       }
     }
 
-    die "Couldn't get track hub $name in the Registry when calling method get_Registry_hub_last_update in script: ".__FILE__." line ".__LINE__." I am getting code ".$response->code."\n"
-    unless $flag_success==1;
+    die
+      "Couldn't get track hub $name in the Registry when calling method get_Registry_hub_last_update in script: "
+      . __FILE__
+      . " line "
+      . __LINE__
+      . " I am getting code "
+      . $response->code . "\n"
+      unless $flag_success == 1;
   }
 
-  die "Couldn't find hub $name in the Registry to get the last update date when calling method get_Registry_hub_last_update in script: ".__FILE__." line ".__LINE__."\n" 
-  unless $hub;
+  die
+    "Couldn't find hub $name in the Registry to get the last update date when calling method get_Registry_hub_last_update in script: "
+    . __FILE__
+    . " line "
+    . __LINE__ . "\n"
+    unless $hub;
 
   my $last_update = -1;
 
-  foreach my $trackdb (@{$hub->{trackdbs}}) {
+  foreach my $trackdb ( @{ $hub->{trackdbs} } ) {
 
-    $request = GET($trackdb->{uri});
-    $request->headers->header(user       => $registry_user_name);
-    $request->headers->header(auth_token => $auth_token);
+    $request = GET( $trackdb->{uri} );
+    $request->headers->header( user       => $registry_user_name );
+    $request->headers->header( auth_token => $auth_token );
     $response = $self->agent->request($request);
     my $doc;
-    if ($response->is_success) {
-      $doc = from_json($response->content);
-    } else {  
-      die "\tCouldn't get trackdb at", $trackdb->{uri}." from study $name in the Registry when trying to get the last update date \n";
+    if ( $response->is_success ) {
+      $doc = from_json( $response->content );
+    }
+    else {
+      die "\tCouldn't get trackdb at", $trackdb->{uri}
+        . " from study $name in the Registry when trying to get the last update date \n";
     }
 
-    if (exists $doc->{updated}) {
+    if ( exists $doc->{updated} ) {
       $last_update = $doc->{updated}
-      if $last_update < $doc->{updated};
-    } else {
-      exists $doc->{created} or die "Trackdb does not have creation date in the Registry when trying to get the last update date of study $name\n";
+        if $last_update < $doc->{updated};
+    }
+    else {
+      exists $doc->{created}
+        or die
+        "Trackdb does not have creation date in the Registry when trying to get the last update date of study $name\n";
       $last_update = $doc->{created}
-      if $last_update < $doc->{created};
+        if $last_update < $doc->{created};
     }
   }
 
-  die "Couldn't get date as expected: $last_update\n" unless $last_update =~ /^[1-9]\d+?$/;
+  die "Couldn't get date as expected: $last_update\n"
+    unless $last_update =~ /^[1-9]\d+?$/;
 
   return $last_update;
 }
@@ -369,78 +405,94 @@ sub give_all_bioreps_of_study_from_Registry {
 
   my $self = shift;
 
-  my $name = shift;  # track hub name, ie study_id
+  my $name = shift;    # track hub name, ie study_id
 
   defined $name
-    or print "Track hub name parameter required to get the track hub's bioreps from the Track Hub Registry\n" and return 0;
+    or print
+    "Track hub name parameter required to get the track hub's bioreps from the Track Hub Registry\n"
+    and return 0;
 
-  my $registry_user_name= $self->user;
-  
+  my $registry_user_name = $self->user;
+
   my $auth_token = $self->auth_token;
 
   my $request = GET("$SERVER/api/trackhub/$name");
-  $request->headers->header(user       => $registry_user_name);
-  $request->headers->header(auth_token => $auth_token);
+  $request->headers->header( user       => $registry_user_name );
+  $request->headers->header( auth_token => $auth_token );
   my $response = $self->agent->request($request);
   my $hub;
 
-  if ($response->is_success) {
+  if ( $response->is_success ) {
 
-    $hub = from_json($response->content);
+    $hub = from_json( $response->content );
 
-  } else {  
+  }
+  else {
 
-    print "\tCouldn't get Registered track hub $name with the first attempt when calling method give_all_runs_of_study_from_Registry in script ".__FILE__." reason " .$response->code ." , ". $response->content."\n";
-    my $flag_success=0;
+    print
+      "\tCouldn't get Registered track hub $name with the first attempt when calling method give_all_runs_of_study_from_Registry in script "
+      . __FILE__
+      . " reason "
+      . $response->code . " , "
+      . $response->content . "\n";
+    my $flag_success = 0;
 
-    for(my $i=1; $i<=10; $i++) {
+    for ( my $i = 1 ; $i <= 10 ; $i++ ) {
 
-      print "\t".$i .") Retrying attempt: Retrying after 5s...\n";
+      print "\t" . $i . ") Retrying attempt: Retrying after 5s...\n";
       sleep 5;
       $response = $self->agent->request($request);
-      if($response->is_success){
-        $hub = from_json($response->content);
-        $flag_success =1 ;
+      if ( $response->is_success ) {
+        $hub          = from_json( $response->content );
+        $flag_success = 1;
         last;
       }
     }
 
-    die "Couldn't get the track hub $name in the Registry when calling method give_all_runs_of_study_from_Registry in script: ".__FILE__." line ".__LINE__."\n"
-    unless $flag_success==1;
+    die
+      "Couldn't get the track hub $name in the Registry when calling method give_all_runs_of_study_from_Registry in script: "
+      . __FILE__
+      . " line "
+      . __LINE__ . "\n"
+      unless $flag_success == 1;
   }
 
-  die "Couldn't find hub $name in the Registry to get its runs when calling method give_all_runs_of_study_from_Registry in script: ".__FILE__." line ".__LINE__."\n" 
-  unless $hub;
+  die
+    "Couldn't find hub $name in the Registry to get its runs when calling method give_all_runs_of_study_from_Registry in script: "
+    . __FILE__
+    . " line "
+    . __LINE__ . "\n"
+    unless $hub;
 
-  my %runs ;
+  my %runs;
 
-  foreach my $trackdb (@{$hub->{trackdbs}}) {
+  foreach my $trackdb ( @{ $hub->{trackdbs} } ) {
 
-    $request = GET($trackdb->{uri});
-    $request->headers->header(user       => $registry_user_name);
-    $request->headers->header(auth_token => $auth_token);
+    $request = GET( $trackdb->{uri} );
+    $request->headers->header( user       => $registry_user_name );
+    $request->headers->header( auth_token => $auth_token );
     $response = $self->agent->request($request);
     my $doc;
 
-    if ($response->is_success) {
+    if ( $response->is_success ) {
 
-      $doc = from_json($response->content);
+      $doc = from_json( $response->content );
 
-
-      foreach my $sample (keys %{$doc->{configuration}}) {
-	map { $runs{$_}++ } keys %{$doc->{configuration}{$sample}{members}}; 
+      foreach my $sample ( keys %{ $doc->{configuration} } ) {
+        map { $runs{$_}++ }
+          keys %{ $doc->{configuration}{$sample}{members} };
       }
-    } else {  
-      die "Couldn't get trackdb at ", $trackdb->{uri} , " from study $name in the Registry when trying to get all its runs, reason: " .$response->code ." , ". $response->content."\n";
+    }
+    else {
+      die "Couldn't get trackdb at ", $trackdb->{uri},
+        " from study $name in the Registry when trying to get all its runs, reason: "
+        . $response->code . " , "
+        . $response->content . "\n";
     }
   }
-
 
   return \%runs;
 
 }
-
-
-
 
 1;
