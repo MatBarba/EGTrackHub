@@ -218,7 +218,7 @@ sub delete_all_track_hubs {
   my $self = shift;
   
   my $track_hub_ids = $self->get_all_registered;
-  $self->delete_track_hubs($track_hub_ids);
+  $self->delete_track_hubs(@$track_hub_ids);
 }
 
 sub delete_track_hubs {
