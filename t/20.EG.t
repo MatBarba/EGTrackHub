@@ -51,7 +51,7 @@ ok(
 my $assembly_name =
   EGTH::EG::get_assembly_name_using_species_name("triticum_aestivum");
 is(
-  $assembly_name, "IWGSC1+popseq",
+  $assembly_name, "TGACv1",
   "Triticum aestivum has the exprected assembly name"
 );
 

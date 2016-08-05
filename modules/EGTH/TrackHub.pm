@@ -16,14 +16,19 @@ use File::Path qw(make_path);
 use EGTH::TrackHub::Genome;
 
 # Attributes
+has id => (
+  is       => 'ro',
+  isa      => 'Str',
+  required => 1,
+);
+
 has [
   qw(
-    id
     shortLabel
     longLabel
     )
   ] => (
-  is       => 'ro',
+  is       => 'rw',
   isa      => 'Str',
   required => 1,
 );

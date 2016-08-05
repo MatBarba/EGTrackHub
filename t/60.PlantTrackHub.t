@@ -31,6 +31,8 @@ my $email = 'example@example.com';
 ok(
   my $plant_trackhub = EGTH::PlantTrackHub->new(
     id    => $study_id,
+    shortLabel  => 'Label_for_'.$study_id,
+    longLabel   => 'Long_label_for_'.$study_id,
     email => $email,
   ),
   "Creating a plant trackhub object with correct attributes"
