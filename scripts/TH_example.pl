@@ -43,7 +43,7 @@ my %example = (
   title       => 'RNA-Seq alignment hub SRP016018',
   description => 'An epigenetic role for disrupted paternal gene expression in postzygotic seed abortion in Arabidopsis interspecific hybrids ; SRP016018',
   url         => 'http://ftp.sra.ebi.ac.uk/vol1/ERZ306/ERZ306020/SRR580951.cram',
-  type        => 'cram',
+  type        => 'cram',  # can be 'cram', 'bam', 'bigWig'...
   root_dir    => './Track_Hubs',
 );
 
@@ -91,6 +91,8 @@ sub prepare_trackhub {
   # Create an empty track hub with just an id (you can add other fields though)
   my $track_hub = EGTH::TrackHub->new(
     id      => $data->{id},
+    shortLabel  => "Short label for $data->{id}",
+    longLabel   => "Long label for $data->{id}",
   );
   
   # Root dir: where all the track_hub directories are created on your system
@@ -98,7 +100,7 @@ sub prepare_trackhub {
   
   # Server: where the track hub files are publicly accessible
   # This should point to the same root dir via http/ftp
-  $track_hub->server( $data->{hub_server} );
+  $track_hub->server( $data->{server} ) if $data->{server};
 
   # Create a genome for the hub
   # The insdc part is only used when registering the hub
