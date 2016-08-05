@@ -16,8 +16,13 @@ use File::Path qw(make_path);
 use EGTH::TrackHub::Genome;
 
 # Attributes
-
-has id => (
+has [
+  qw(
+    id
+    shortLabel
+    longLabel
+    )
+  ] => (
   is       => 'ro',
   isa      => 'Str',
   required => 1,
@@ -25,8 +30,6 @@ has id => (
 
 has [
   qw(
-    shortLabel
-    longLabel
     email
     descriptionUrl
     )
