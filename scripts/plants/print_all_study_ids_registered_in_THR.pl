@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 use FindBin;
-use lib $FindBin::Bin . '/../modules';
+use lib $FindBin::Bin . '/../../modules';
 use EGTH::Registry;
 
 my $registry_user_name = $ENV{'THR_USER'};

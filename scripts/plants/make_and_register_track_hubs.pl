@@ -17,7 +17,7 @@ use File::Path qw(remove_tree);
 use Getopt::Long;
 
 use FindBin;
-use lib $FindBin::Bin . '/../modules';
+use lib $FindBin::Bin . '/../../modules';
 use EGTH::ArrayExpress;
 use EGTH::TrackHubCreation;
 use EGTH::AEStudy;

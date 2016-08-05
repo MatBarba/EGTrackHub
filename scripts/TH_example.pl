@@ -16,6 +16,9 @@ use File::Path qw(make_path);
 use File::Copy;
 use Data::Dumper;
 
+# To not need to put the libs in PERL5LIB...
+use FindBin;
+use lib $FindBin::Bin . '/../modules';
 #################################
 # You need all this to create a
 # track hub

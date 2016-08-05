@@ -22,7 +22,7 @@ use Time::Piece;
 use Data::Dumper;
 
 use FindBin;
-use lib $FindBin::Bin . '/../modules';
+use lib $FindBin::Bin . '/../../modules';
 use EGTH::Registry;
 use EGTH::TrackHubCreation;
 use EGTH::ENA;
