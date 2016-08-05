@@ -100,6 +100,8 @@ sub update_hub_dir {
 
 sub _build_hub_url {
   my $self = shift;
+  die "Can't create hub url without server"
+    if not $self->server;
   
   return $self->server . '/' . $self->id . '/' . $self->hub_file;
 }
