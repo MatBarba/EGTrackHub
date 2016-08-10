@@ -43,7 +43,7 @@ ok(exists $plant_names_href->{arabidopsis_thaliana} ,"Arabidopsis_thaliana exist
 
 #test5
 my $assembly_name = EGPlantTHs::EG::get_assembly_name_using_species_name("triticum_aestivum");
-is($assembly_name,"IWGSC1+popseq", "Triticum aestivum has the exprected assembly name");
+is($assembly_name,"TGACv1", "Triticum aestivum has the exprected assembly name");
 
 #test6
 $assembly_name = EGPlantTHs::EG::get_assembly_name_using_species_name("arabidopsis_thaliana");
