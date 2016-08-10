@@ -2,15 +2,16 @@ package EGPlantTHs::TrackHubCreation;
 
 use strict ;
 use warnings;
+use autodie qw(:all);
 
 use Getopt::Long; # to use the options when calling the script
 use POSIX qw(strftime); # to get GMT time stamp
+use File::Path qw(make_path);
 
 use EGPlantTHs::ENA;
 use EGPlantTHs::AEStudy;
 use EGPlantTHs::SubTrack;
 use EGPlantTHs::SuperTrack;
-use EGPlantTHs::Helper;
 
 my $meta_keys_aref = EGPlantTHs::ENA::get_all_sample_keys(); # array ref that has all the keys for the ENA warehouse metadata
 
@@ -79,8 +80,7 @@ sub make_study_dir{
 
   my $study_id = $study_obj->id;  
 
-  EGPlantTHs::Helper::run_system_command("mkdir $server_dir_full_path" . '/' . $study_id)
-    or die "I cannot make dir $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
+  make_path $server_dir_full_path . '/' . $study_id;
 }
 
 sub make_assemblies_dirs{
@@ -92,8 +92,7 @@ sub make_assemblies_dirs{
   # For every assembly I make a directory for the study -track hub
   foreach my $assembly_name (keys %{$study_obj->get_assembly_names}){
 
-    EGPlantTHs::Helper::run_system_command("mkdir $server_dir_full_path/$study_id/$assembly_name")
-      or die "I cannot make directories of assemblies in $server_dir_full_path/$study_id in script: ".__FILE__." line: ".__LINE__."\n";
+    make_path "$server_dir_full_path/$study_id/$assembly_name";
   }
 }
 
@@ -105,8 +104,7 @@ sub make_hubtxt_file{
   my $study_id = $study_obj->id;
   my $hub_txt_file= "$server_dir_full_path/$study_id/hub.txt";
 
-  EGPlantTHs::Helper::run_system_command("touch $hub_txt_file")
-    or die "Could not create hub.txt file in the $server_dir_full_path location\n";
+  system("touch $hub_txt_file");
   
   open(my $fh, '>', $hub_txt_file) or die "Could not open file '$hub_txt_file' $! in ".__FILE__." line: ".__LINE__."\n";
 
@@ -148,8 +146,7 @@ sub make_genomestxt_file{
 
   my $genomes_txt_file = "$server_dir_full_path/$study_id/genomes.txt";
 
-  EGPlantTHs::Helper::run_system_command("touch $genomes_txt_file")
-    or die "Could not create genomes.txt file in the $server_dir_full_path location\n";
+  system("touch $genomes_txt_file");
 
   open(my $fh2, '>', $genomes_txt_file) or die "Could not open file '$genomes_txt_file' $!\n";
 
@@ -170,8 +167,7 @@ sub make_trackDbtxt_file{
   my $study_id =$study_obj->id;
   my $trackDb_txt_file="$ftp_dir_full_path/$study_id/$assembly_name/trackDb.txt";
 
-  EGPlantTHs::Helper::run_system_command("touch $trackDb_txt_file")
-    or die "Could not create trackDb.txt file in the $ftp_dir_full_path/$study_id/$assembly_name location\n";       
+  system("touch $trackDb_txt_file");
 
   open(my $fh, '>', $trackDb_txt_file)
     or die "Error in ".__FILE__." line ".__LINE__." Could not open file '$trackDb_txt_file' $!";

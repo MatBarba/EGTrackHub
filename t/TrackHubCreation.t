@@ -6,6 +6,10 @@ use Test::File;
 
 use FindBin;
 use lib $FindBin::Bin . '/../modules';
+use File::Temp;
+
+my $study_id  = "DRP000391";
+my $tmpdir    = File::Temp->newdir();
 
 # -----
 # checks if the modules can load
@@ -35,9 +39,6 @@ use_ok(EGPlantTHs::SubTrack);  # it checks if it can use the module correctly
 #test8
 use_ok(EGPlantTHs::SuperTrack);  # it checks if it can use the module correctly
 
-#test9
-use_ok(EGPlantTHs::Helper);  # it checks if it can use the module correctly
-
 #test10
 use_ok(EGPlantTHs::ArrayExpress);  # it checks if it can use the module correctly
 
@@ -46,7 +47,7 @@ use_ok(EGPlantTHs::ArrayExpress);  # it checks if it can use the module correctl
 # -----
 
 #test11
-my $trackHubCreator_obj = EGPlantTHs::TrackHubCreation->new("DRP000391" ,"/homes/tapanari" );
+my $trackHubCreator_obj = EGPlantTHs::TrackHubCreation->new("DRP000391" ,$tmpdir );
 
 isa_ok($trackHubCreator_obj,'EGPlantTHs::TrackHubCreation','checks whether the object constructed is of my class type');
 
@@ -63,12 +64,12 @@ my $plant_names_AE_response_href = EGPlantTHs::ArrayExpress::get_plant_names_AE_
 
 #my $output=$trackHubCreator_obj->make_track_hub($plant_names_AE_response_href);
 
-#dir_exists_ok( "/homes/tapanari/DRP000391" , "Check that the directory exists" );
+#dir_exists_ok( "$tmpdir/DRP000391" , "Check that the directory exists" );
 
 #test13
 #is($output , "..Done\n" , "track hub is successfully created");
 
-#Helper::run_system_command ("rm -r /homes/tapanari/DRP000391");
+#Helper::run_system_command ("rm -r $tmpdir/DRP000391");
 
 # -----
 # test make_study_dir method
@@ -78,39 +79,39 @@ my $plant_names_AE_response_href = EGPlantTHs::ArrayExpress::get_plant_names_AE_
 my $plant_names_response_href=EGPlantTHs::ArrayExpress::get_plant_names_AE_API();
 my $study_obj=EGPlantTHs::AEStudy->new("DRP000391",$plant_names_response_href);
 
-$trackHubCreator_obj->make_study_dir("/homes/tapanari",$study_obj);
-dir_exists_ok( "/homes/tapanari/DRP000391" , "Check that the directory exists" );
+$trackHubCreator_obj->make_study_dir($tmpdir,$study_obj);
+dir_exists_ok( "$tmpdir/DRP000391" , "Check that the directory exists" );
 
 # -----
 # test make_assemblies_dirs method
 # -----
 
 #test14
-$trackHubCreator_obj->make_assemblies_dirs("/homes/tapanari",$study_obj);
-dir_exists_ok( "/homes/tapanari/DRP000391/IRGSP-1.0" , "Check that the assembly directory exists" );
+$trackHubCreator_obj->make_assemblies_dirs($tmpdir,$study_obj);
+dir_exists_ok( "$tmpdir/DRP000391/IRGSP-1.0" , "Check that the assembly directory exists" );
 
 # -----
 # test make_hubtxt_file method
 # -----
 
 #test15
-my $return1=EGPlantTHs::TrackHubCreation->make_hubtxt_file("/homes/tapanari",$study_obj);
-file_exists_ok(("/homes/tapanari/DRP000391/hub.txt"),"Check if the file hub.txt exists");
+my $return1=EGPlantTHs::TrackHubCreation->make_hubtxt_file($tmpdir,$study_obj);
+file_exists_ok(("$tmpdir/DRP000391/hub.txt"),"Check if the file hub.txt exists");
 
 #test16
-file_contains_like( "/homes/tapanari/DRP000391/hub.txt", qr/^hub\sDRP000391\nshortLabel.+\nlongLabel.+\ngenomesFile\sgenomes.txt\nemail\s.+\n/,"content of file hub.txt is as expected" );
+file_contains_like( "$tmpdir/DRP000391/hub.txt", qr/^hub\sDRP000391\nshortLabel.+\nlongLabel.+\ngenomesFile\sgenomes.txt\nemail\s.+\n/,"content of file hub.txt is as expected" );
 
 # -----
 # test make_genomestxt_file method
 # -----
 
 #test17
-$trackHubCreator_obj->make_genomestxt_file("/homes/tapanari",$study_obj);
-file_exists_ok(("/homes/tapanari/DRP000391/genomes.txt"),"Check if the file hub.txt exists");
+$trackHubCreator_obj->make_genomestxt_file($tmpdir,$study_obj);
+file_exists_ok(("$tmpdir/DRP000391/genomes.txt"),"Check if the file hub.txt exists");
 
 
 #test18
-file_contains_like( "/homes/tapanari/DRP000391/genomes.txt", qr/^genome\sIRGSP-1\.0\ntrackDb\sIRGSP-1\.0\/trackDb\.txt\n/,"content of file genomes.txt is as expected" );
+file_contains_like( "$tmpdir/DRP000391/genomes.txt", qr/^genome\sIRGSP-1\.0\ntrackDb\sIRGSP-1\.0\/trackDb\.txt\n/,"content of file genomes.txt is as expected" );
 
 
 # -----
@@ -119,11 +120,11 @@ file_contains_like( "/homes/tapanari/DRP000391/genomes.txt", qr/^genome\sIRGSP-1
 
 #test19
 
-my $return=$trackHubCreator_obj->make_trackDbtxt_file("/homes/tapanari",$study_obj, "IRGSP-1.0");
-file_exists_ok(("/homes/tapanari/DRP000391/IRGSP-1.0/trackDb.txt"),"Check if the file trackDb.txt exists");
+my $return=$trackHubCreator_obj->make_trackDbtxt_file($tmpdir,$study_obj, "IRGSP-1.0");
+file_exists_ok(("$tmpdir/DRP000391/IRGSP-1.0/trackDb.txt"),"Check if the file trackDb.txt exists");
 
 #test20
-file_contains_like( "/homes/tapanari/DRP000391/IRGSP-1.0/trackDb.txt", qr/^track.+\nsuperTrack on show\n+/,"content of file trackDb.txt is as expected" );
+file_contains_like( "$tmpdir/DRP000391/IRGSP-1.0/trackDb.txt", qr/^track.+\nsuperTrack on show\n+/,"content of file trackDb.txt is as expected" );
 
 
 # -----
@@ -210,11 +211,10 @@ is($sub_track_obj->{short_label},"ArrayExpress:E-MTAB-2037.biorep4","sub track s
 is($sub_track_obj->{long_label},"Illumina Genome Analyzer IIx sequencing; Illumina sequencing of cDNAs generated from mRNAs_retro_PAAF;<a href=\"http://www.ebi.ac.uk/arrayexpress/experiments/E-GEOD-55482/samples/?full=truehttp://www.ebi.ac.uk/~rpetry/bbrswcapital/E-MTAB-2037.bioreps.txt\">E-MTAB-2037.biorep4</a>","sub track long label is as expected");
 
 #test37
-is($sub_track_obj->{file_type},"cram","sub track file type is as expected");
+is($sub_track_obj->{file_type},"bam","sub track file type is as expected (type=bam for cram files)");
 
 #test38
 is($sub_track_obj->{visibility},"on","sub track visibility is as expected");
 
-EGPlantTHs::Helper::run_system_command ("rm -r /homes/tapanari/DRP000391");
 
 done_testing(); 
