@@ -1,5 +1,6 @@
 
 use Test::More;
+use Test::More skip_all => "TODO";
 use Test::Exception;
 #use Devel::Cover;
 
