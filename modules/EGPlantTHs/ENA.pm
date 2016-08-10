@@ -34,8 +34,9 @@ sub get_ENA_study_title{
   }
 
   my $doc_obj = $parser->parse_string($response_string);
+  my $doc_text = $doc_obj->toString();
 
-  if ($doc_obj =~/display type is either not supported or entry is not found/ or $doc_obj !~/\/STUDY_LINK/){
+  if ($doc_text =~/display type is either not supported or entry is not found/ or $doc_text !~/\/STUDY_LINK/){
     return "not yet in ENA";
   }
 
@@ -406,14 +407,26 @@ sub get_ENA_cram_location{
 }
 
 
-sub give_big_data_file_type{
-  
+sub give_big_data_file_type {
   my $big_date_url = shift;
-
-  $big_date_url=~ /.+\/.+\.(.+)$/; #  http://ftp.sra.ebi.ac.uk/vol1/ERZ285/ERZ285703/SRR3019819.cram
-
-  return $1; # ie cram
-
+  
+  # (Incomplete) mapping between extension and file type
+  my %map = (
+    'cram' => 'bam',    # See http://genome.ucsc.edu/goldenPath/help/cram.html
+    'bw'   => 'bigWig',
+  );
+  
+  # E.g. from http://ftp.sra.ebi.ac.uk/vol1/ERZ285/ERZ285703/SRR3019819.cram
+  if ($big_date_url=~ /.+\/.+\.([^\/]+)$/) {
+    my $type = $1;
+    
+    # Use the right name
+    if ($map{$type}) {
+      $type = $map{$type};
+    }
+    return $type;
+  }
+  return;
 }
 
 

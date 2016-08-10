@@ -40,7 +40,7 @@ is($sample_title,"Arabidopsis thaliana Bur-0 X Col-0 seedling, biological replic
 
 #test7
 my $sample_title_wrong_sample_title = EGPlantTHs::ENA::get_ENA_title("SAMN0266688");
-is($sample_title_wrong_sample_title,"not yet in ENA", "not yet in ENA response when giving wrong sample id..");
+is($sample_title_wrong_sample_title, 0, "Null (0) response when giving wrong sample id.");
 
 #test8
 my ($stdout, $stderr,$sample_title_wrong_sample_title) = capture { 
@@ -99,6 +99,6 @@ like($url , qr/^http:\/\/www.ebi.ac.uk\/ena\/data\/.+accession=SAMN02666886.+sex
 #test19
 my $url_ena="http://ftp.sra.ebi.ac.uk/vol1/ERZ285/ERZ285703/SRR3019819.cram";
 my $file_type = EGPlantTHs::ENA::give_big_data_file_type($url_ena);
-is($file_type, "cram", "big data file type is as expected");
+is($file_type, "bam", "big data file type is as expected");
 
 done_testing();
