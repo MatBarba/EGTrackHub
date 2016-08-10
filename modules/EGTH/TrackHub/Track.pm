@@ -14,7 +14,10 @@ use namespace::autoclean;
 has [
   qw(
     track
+    type
     shortLabel
+    bigDataUrl
+    longLabel
     )
   ] => (
   is       => 'ro',
@@ -24,9 +27,6 @@ has [
 
 has [
   qw(
-    type
-    longLabel
-    bigDataUrl
     html
     )
   ] => (
@@ -60,10 +60,17 @@ use overload '""' => 'to_string';
 
 sub _prepare_data {
   my $self = shift;
+  
+  # Because crams are interpreted like bam, they use the same type...
+  # http://genome.ucsc.edu/goldenPath/help/cram.html
+  my $type = $self->type;
+  if ($type eq 'cram') {
+    $type = 'bam';
+  }
 
   my %data = (
     track      => $self->track,
-    type       => $self->type,
+    type       => $type,
     shortLabel => $self->shortLabel,
     longLabel  => $self->longLabel,
     bigDataUrl => $self->bigDataUrl,

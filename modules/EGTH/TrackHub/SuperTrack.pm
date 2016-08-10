@@ -13,6 +13,8 @@ use namespace::autoclean;
 
 # Attributes
 has '+visibility' => ( default => undef, );
+has '+bigDataUrl' => ( required => 0 );
+has '+type'       => ( required => 0 );
 
 has show => (
   is      => 'rw',
