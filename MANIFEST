@@ -1,0 +1,16 @@
+Makefile.PL
+MANIFEST			This list of files
+modules/Bio/EnsEMBL/TrackHub/Hub.pm
+modules/Bio/EnsEMBL/TrackHub/Hub/Genome.pm
+modules/Bio/EnsEMBL/TrackHub/Hub/SubTrack.pm
+modules/Bio/EnsEMBL/TrackHub/Hub/SuperTrack.pm
+modules/Bio/EnsEMBL/TrackHub/Hub/Track.pm
+modules/Bio/EnsEMBL/TrackHub/Registry.pm
+README.md
+scripts/TH_example.pl
+t/10.Track.t
+t/20.SubTrack.t
+t/21.SuperTrack.t
+t/30.Genome.t
+t/50.TrackHub.t
+t/70.Registry.t
