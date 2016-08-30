@@ -12,6 +12,8 @@ use Data::Dumper;
 use Perl6::Slurp qw(slurp);
 
 # checks if the modules can load
+use FindBin;
+use lib $FindBin::Bin . '/../modules';
 use_ok('Bio::EnsEMBL::TrackHub::Hub');
 use_ok('Bio::EnsEMBL::TrackHub::Hub::Genome');
 use_ok('Bio::EnsEMBL::TrackHub::Hub::Track');

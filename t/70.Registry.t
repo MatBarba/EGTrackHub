@@ -10,6 +10,8 @@ use Test::Exception;
 # -----
 # checks if the module can load
 # -----
+use FindBin;
+use lib $FindBin::Bin . '/../modules';
 use_ok('Bio::EnsEMBL::TrackHub::Registry');
 
 # -----
