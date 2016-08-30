@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
     NAME         => 'Bio::EnsEMBL::TrackHub',
-    VERSION_FROM => 'modules/Bio/EnsEMBL/TrackHub.pm',
+    VERSION_FROM => 'lib/Bio/EnsEMBL/TrackHub.pm',
     PREREQ_PM    => {
         'HTTP::Request::Common' => '0',
         'JSON'                  => '0',
@@ -18,7 +18,7 @@ WriteMakefile(
         'Test::Exception'       => '0',
         'Test::File'            => '0',
     },
-    #ABSTRACT_FROM => 'modules/Bio/EnsEMBL/TrackHub.pm',
+    #ABSTRACT_FROM => 'lib/Bio/EnsEMBL/TrackHub.pm',
     AUTHOR        => 'mbarba <mbarba@ebi.ac.uk>',
     LICENSE       => 'apache',
 );
