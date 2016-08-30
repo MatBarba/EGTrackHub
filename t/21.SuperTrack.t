@@ -12,8 +12,8 @@ use Data::Dumper;
 use Perl6::Slurp qw(slurp);
 
 # checks if the modules can load
-use_ok('EGTH::TrackHub::SuperTrack');
-use_ok('EGTH::TrackHub::Track');
+use_ok('Bio::EnsEMBL::TrackHub::Hub::SuperTrack');
+use_ok('Bio::EnsEMBL::TrackHub::Hub::Track');
 
 # Prepare dummy data
 my %super = (
@@ -48,17 +48,17 @@ my $expected_trackdb_text =
   $expected_super_text . "\n" . $expected_sub_text . "parent $sub{parent}\n";
 
 dies_ok {
-  my $supertrack = EGTH::TrackHub::SuperTrack->new;
+  my $supertrack = Bio::EnsEMBL::TrackHub::Hub::SuperTrack->new;
 }
 "Creating a super-track without id should fail";
 
 ok(
-  my $supertrack = EGTH::TrackHub::SuperTrack->new(%super),
+  my $supertrack = Bio::EnsEMBL::TrackHub::Hub::SuperTrack->new(%super),
   "Create 1 super-track"
 );
 
 ok(
-  my $subtrack = EGTH::TrackHub::Track->new(%sub),
+  my $subtrack = Bio::EnsEMBL::TrackHub::Hub::Track->new(%sub),
   "Create 1 sub-track as a normal track"
 );
 cmp_ok(

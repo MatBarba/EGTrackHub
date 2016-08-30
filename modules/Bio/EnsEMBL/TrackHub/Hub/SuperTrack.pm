@@ -1,4 +1,4 @@
-package EGTH::TrackHub::SuperTrack;
+package Bio::EnsEMBL::TrackHub::Hub::SuperTrack;
 
 use strict;
 use warnings;
@@ -7,8 +7,8 @@ use Carp;
 $Carp::Verbose = 1;
 
 use Moose;
-extends 'EGTH::TrackHub::Track';
-use EGTH::TrackHub::SubTrack;
+extends 'Bio::EnsEMBL::TrackHub::Hub::Track';
+use Bio::EnsEMBL::TrackHub::Hub::SubTrack;
 use namespace::autoclean;
 
 # Attributes
@@ -24,7 +24,7 @@ has show => (
 
 has sub_tracks => (
   is      => 'rw',
-  isa     => 'ArrayRef[EGTH::TrackHub::Track]',
+  isa     => 'ArrayRef[Bio::EnsEMBL::TrackHub::Hub::Track]',
   default => sub { [] },
 );
 
@@ -53,7 +53,7 @@ sub add_sub_track {
   $subtrack_data{parent} = $self->track;
 
   # Create the subtrack object
-  my $subtrack = EGTH::TrackHub::SubTrack->new(%subtrack_data);
+  my $subtrack = Bio::EnsEMBL::TrackHub::Hub::SubTrack->new(%subtrack_data);
 
   push @{ $self->sub_tracks }, $subtrack;
 

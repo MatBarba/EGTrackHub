@@ -12,7 +12,7 @@ use Data::Dumper;
 use Perl6::Slurp qw(slurp);
 
 # checks if the modules can load
-use_ok('EGTH::TrackHub::Track');
+use_ok('Bio::EnsEMBL::TrackHub::Hub::SubTrack');
 
 # Prepare dummy data
 my %tr = (
@@ -22,21 +22,29 @@ my %tr = (
   type       => 'bigwig',
   bigDataUrl => 'ftp://example.com/track1.bw',
 );
+my $parent_id             = 'supertrack_A';
 my $expected_trackdb_text = "track $tr{track}
 type $tr{type}
 shortLabel $tr{shortLabel}
 longLabel $tr{longLabel}
 bigDataUrl $tr{bigDataUrl}
 visibility hide
+parent $parent_id
 ";
 
 dies_ok {
-  my $track = EGTH::TrackHub::Track->new;
+  my $track = Bio::EnsEMBL::TrackHub::Hub::SubTrack->new;
 }
 "Creating a track without id should fail";
 
+dies_ok {
+  my $track = Bio::EnsEMBL::TrackHub::Hub::SubTrack->new(%tr),
+}
+"Creating a subtrack without parent should fail";
+
+$tr{parent} = $parent_id;
 ok(
-  my $track = EGTH::TrackHub::Track->new(%tr),
+  my $track = Bio::EnsEMBL::TrackHub::Hub::SubTrack->new(%tr),
   "Create 1 generic track"
 );
 

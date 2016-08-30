@@ -1,4 +1,4 @@
-package EGTH::TrackHub::Track;
+package Bio::EnsEMBL::TrackHub::Hub::Track;
 
 use strict;
 use warnings;

@@ -1,4 +1,4 @@
-package EGTH::TrackHub;
+package Bio::EnsEMBL::TrackHub::Hub;
 
 use strict;
 use warnings;
@@ -13,7 +13,7 @@ use namespace::autoclean;
 use File::Spec;
 use File::Path qw(make_path);
 
-use EGTH::TrackHub::Genome;
+use Bio::EnsEMBL::TrackHub::Hub::Genome;
 
 # Attributes
 has id => (
@@ -81,7 +81,7 @@ has url => (
 
 has genomes => (
   is      => 'rw',
-  isa     => 'HashRef[EGTH::TrackHub::Genome]',
+  isa     => 'HashRef[Bio::EnsEMBL::TrackHub::Hub::Genome]',
   default => sub { {} },
 );
 

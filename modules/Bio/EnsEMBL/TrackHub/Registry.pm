@@ -1,4 +1,4 @@
-package EGTH::Registry;
+package Bio::EnsEMBL::TrackHub::Registry;
 
 use strict;
 use warnings;

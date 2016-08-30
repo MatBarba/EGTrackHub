@@ -1,4 +1,4 @@
-package EGTH::TrackHub::SubTrack;
+package Bio::EnsEMBL::TrackHub::Hub::SubTrack;
 
 use strict;
 use warnings;
@@ -7,7 +7,7 @@ use Carp;
 $Carp::Verbose = 1;
 
 use Moose;
-extends 'EGTH::TrackHub::Track';
+extends 'Bio::EnsEMBL::TrackHub::Hub::Track';
 use namespace::autoclean;
 
 # Attributes

@@ -22,11 +22,11 @@ use lib $FindBin::Bin . '/../modules';
 #################################
 # You need all this to create a
 # track hub
-use EGTH::TrackHub;
-use EGTH::TrackHub::Genome;
-use EGTH::TrackHub::Track;
-use EGTH::TrackHub::SuperTrack;
-use EGTH::Registry;
+use Bio::EnsEMBL::TrackHub::Hub;
+use Bio::EnsEMBL::TrackHub::Hub::Genome;
+use Bio::EnsEMBL::TrackHub::Hub::Track;
+use Bio::EnsEMBL::TrackHub::Hub::SuperTrack;
+use Bio::EnsEMBL::TrackHub::Registry;
 #################################
 
 use Log::Log4perl qw( :easy );
@@ -64,7 +64,7 @@ if ($opt{create}) {
 } else {
   my $registry;
   if ($opt{reg_user} and $opt{reg_pass}) {
-    $registry = EGTH::Registry->new(
+    $registry = Bio::EnsEMBL::TrackHub::Registry->new(
       user     => $opt{reg_user},
       password => $opt{reg_pass},
     );
@@ -89,7 +89,7 @@ sub prepare_trackhub {
   my ($data) = @_;
 
   # Create an empty track hub with just an id (you can add other fields though)
-  my $track_hub = EGTH::TrackHub->new(
+  my $track_hub = Bio::EnsEMBL::TrackHub::Hub->new(
     id      => $data->{id},
     shortLabel  => "Short label for $data->{id}",
     longLabel   => "Long label for $data->{id}",
@@ -104,13 +104,13 @@ sub prepare_trackhub {
 
   # Create a genome for the hub
   # The insdc part is only used when registering the hub
-  my $genome = EGTH::TrackHub::Genome->new(
+  my $genome = Bio::EnsEMBL::TrackHub::Hub::Genome->new(
     id    => $data->{genome_id},
     insdc => $data->{assembly},
   );
 
   # We can create as many super tracks as we want per genome
-  my $super_track = EGTH::TrackHub::SuperTrack->new(
+  my $super_track = Bio::EnsEMBL::TrackHub::Hub::SuperTrack->new(
     track      => 'Supertrack',
     shortLabel => 'Signal density',
     type       => $data->{type},
@@ -118,7 +118,7 @@ sub prepare_trackhub {
   );
   
   # Each supertrack needs a collection of subtracks
-  my $track = EGTH::TrackHub::Track->new(
+  my $track = Bio::EnsEMBL::TrackHub::Hub::Track->new(
     track       => $data->{id},
     shortLabel  => $data->{title},
     longLabel   => $data->{description},
