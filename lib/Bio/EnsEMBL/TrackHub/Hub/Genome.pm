@@ -12,7 +12,9 @@ use File::Path qw(make_path);
 
 use Bio::EnsEMBL::TrackHub::Hub::Track;
 
-# Attributes
+###############################################################################
+# ATTRIBUTES
+# As defined in https://genome.ucsc.edu/goldenPath/help/hgTrackHubHelp.html
 has id => (
   is       => 'ro',
   isa      => 'Str',
@@ -49,6 +51,11 @@ has tracks => (
   default => sub { {} },
 );
 
+###############################################################################
+# ATTRIBUTES BUILDERS
+
+# Purpose   : Set the hub_dir (and derive the genome_dir from it)
+# Parameters: hub dir
 sub hub_dir {
   my $self = shift;
   my ($dir) = @_;
@@ -61,6 +68,8 @@ sub hub_dir {
   return $self->_get_hub_dir;
 }
 
+# Purpose   : Define the genome_dir based on the hub_dir
+# Parameters: none
 sub _update_genome_dir {
   my ($self) = shift;
   die "Can't update genome dir if the hub dir is not defined"
@@ -70,6 +79,12 @@ sub _update_genome_dir {
   $self->genome_dir($genome_dir);
 }
 
+###############################################################################
+# INSTANCE METHODS
+
+# INSTANCE METHOD
+# Purpose   : create the text content of genomes.txt
+# Parameters: none
 sub config_text {
   my $self = shift;
 
@@ -107,6 +122,9 @@ sub config_text {
   return join( "\n", @lines ) . "\n";
 }
 
+# INSTANCE METHOD
+# Purpose   : Create a subdirectory for this genome
+# Parameters: none
 sub make_genome_dir {
   my $self = shift;
 
@@ -118,6 +136,9 @@ sub make_genome_dir {
   return 1;
 }
 
+# INSTANCE METHOD
+# Purpose   : Append a Track object to the list of the genome
+# Parameters: A Bio::EnsEMBL::TrackHub::Hub::Track object
 sub add_track {
   my $self = shift;
   my ($track) = @_;
@@ -130,6 +151,9 @@ sub add_track {
   return 1;
 }
 
+# INSTANCE METHOD
+# Purpose   : Create a trackdb file
+# Parameters: none
 sub make_trackdb_file {
   my $self = shift;
 
@@ -142,6 +166,9 @@ sub make_trackdb_file {
   return 1;
 }
 
+# INSTANCE METHOD
+# Purpose   : prepare the trackdb.txt file content
+# Parameters: none
 sub trackdb_file_content {
   my $self = shift;
 
@@ -159,4 +186,66 @@ sub trackdb_file_content {
 
 __PACKAGE__->meta->make_immutable;
 1;
+
+__END__
+
+=head1 DESCRIPTION
+
+Object representing a track hub Genome.
+
+A Genome object consists of an id, an INSDC accession and a list of
+Bio::EnsEMBL::TrackHub::Hub::Track.
+
+=head1 ATTRIBUTES
+
+=over
+
+=item I<id> 
+
+A unique string identifying the Genome. This must be an accession identifier.
+
+=item I<insdc>
+
+A string: INSDC accession for this assembly.
+
+=item I<hub_dir>
+
+Dir where the parent hub is installed. NB: this parameter is automatically
+set by the Hub object when the genome is added to it.
+
+=back
+
+=head1 METHODS
+
+=head2 new
+
+Only the 3 attributes id, shortLabel and longLabel are mandatory to create an
+object. But the root_dir is mandatory to create the files, and the server_dir
+to register the track hub.
+
+Usage:
+
+  my $genome = Bio::EnsEMBL::TrackHub::Hub::Genome->new(
+    id    => 'Assembly_name',
+    insdc => 'GCA00000000',
+  );
+
+=head2 config_text
+
+Create and returns the text content of genomes.txt. This is used by the Hub
+object to create the file.
+
+Usage:
+  my $text = $genome->config_text();
+
+=head2 add_track
+
+Append a new L<Bio::EnsEMBL::TrackHub::Hub::Track> object to the genome.
+
+Usage:
+
+  $genome->add_track($track_object);
+
+
+=cut
 

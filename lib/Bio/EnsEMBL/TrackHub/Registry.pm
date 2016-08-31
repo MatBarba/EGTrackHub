@@ -20,7 +20,10 @@ my $TRACKHUB_API = $SERVER . '/api/trackhub';
 
 $| = 1;
 
-# Attributes
+
+###############################################################################
+# ATTRIBUTES
+# Authentification
 has [
   qw(
     user
@@ -52,12 +55,18 @@ has is_public => (
   default => 0,
 );
 
+###############################################################################
+# ATTRIBUTES BUILDERS
+
+# Purpose   : Initialize a user agent when needed
+# Parameters: none
 sub _build_agent {
   my $self = shift;
   return LWP::UserAgent->new;
 }
 
-# Subs
+# Purpose   : Authenticate and get a token from the Registry
+# Parameters: none
 sub _get_token {
   my $self = shift;
   my $user = $self->user;
@@ -91,6 +100,8 @@ sub _get_token {
   return $auth_token;
 }
 
+###############################################################################
+# AUTOMATIC INSTANCE CLEANUP
 sub DEMOLISH {
   my $self = shift;
 
@@ -109,6 +120,9 @@ sub DEMOLISH {
     }
   }
 }
+
+###############################################################################
+# INSTANCE METHODS
 
 sub _request {
   my $self = shift;
@@ -478,4 +492,9 @@ sub show_track_hubs {
 }
 
 1;
+
+__END__
+
+=head1 DESCRIPTION
+
 

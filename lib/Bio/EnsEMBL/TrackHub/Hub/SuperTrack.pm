@@ -11,7 +11,13 @@ extends 'Bio::EnsEMBL::TrackHub::Hub::Track';
 use Bio::EnsEMBL::TrackHub::Hub::SubTrack;
 use namespace::autoclean;
 
-# Attributes
+###############################################################################
+# ATTRIBUTES
+# As defined in https://genome.ucsc.edu/goldenPath/help/hgTrackHubHelp.html and
+# https://genome.ucsc.edu/goldenPath/help/trackDb/trackDbHub.html
+# 
+# NB: the visibility attribute is replaced by show in the SuperTrack object.
+# Since it is a SuperTrack, it does not need a file/type of file by default
 has '+visibility' => ( default => undef, );
 has '+bigDataUrl' => ( required => 0 );
 has '+type'       => ( required => 0 );
@@ -28,7 +34,10 @@ has sub_tracks => (
   default => sub { [] },
 );
 
-# Rewrite parent subs
+###############################################################################
+# BUILD METHODS
+# Add "superTrack" to the list of parameters
+# This parameter actually uses the show attribute
 sub BUILD {
   my $self = shift;
   push @{ $self->_order }, 'superTrack';
@@ -41,7 +50,12 @@ sub _prepare_data {
   return %data;
 }
 
-# Special subs
+###############################################################################
+# INSTANCE METHODS
+
+# INSTANCE METHOD
+# Purpose   : append a track as a subtrack of this supertrack
+# Parameters: a Track object
 sub add_sub_track {
   my $self = shift;
   my ($track) = @_;
@@ -69,6 +83,9 @@ sub add_sub_track {
   return 1;
 }
 
+# INSTANCE METHOD
+# Purpose   : returns the track text (for the file trackdb.txt) as a string
+# Parameters: none
 sub to_string {
   my $self = shift;
 
@@ -87,4 +104,57 @@ sub to_string {
 
 __PACKAGE__->meta->make_immutable;
 1;
+
+__END__
+
+=head1 DESCRIPTION
+
+Object representing a track hub SuperTrack.
+
+A SuperTrack is simply a Track that contains a list of SubTracks, so that they
+can be set all together.
+
+=head1 ATTRIBUTES
+
+Same as a Track, except:
+
+=over
+
+=item I<visibility> is removed
+
+
+=item a I<show> attribute is added
+
+This attribute is used by the supertrack parameter and can be set to
+1 (show all) or 0 (hide all, default).
+
+=item I<bigDataUrl> is removed
+
+=item I<type> is not mandatory
+
+But it can be used to give the type of the whole subset of tracks.
+
+=back
+
+=head1 METHODS
+
+=head2 new
+
+Same as Track, except for the changes of attributes above.
+
+Usage:
+
+ my $super_track = Bio::EnsEMBL::TrackHub::Hub::SuperTrack->new(
+    track      => 'Supertrack',
+    shortLabel => 'Signal density',
+    type       => 'bigWig',
+    show       => 1,
+  );
+
+=head2 to_string
+
+Get the string of the track which can be used in the trackdb.txt file. This
+also includes the list of all the subtracks.
+
+=cut
 
