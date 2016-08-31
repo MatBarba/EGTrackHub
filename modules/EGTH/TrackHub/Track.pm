@@ -14,7 +14,6 @@ use namespace::autoclean;
 has [
   qw(
     track
-    type
     shortLabel
     bigDataUrl
     longLabel
@@ -24,6 +23,12 @@ has [
   isa      => 'Str',
   required => 1,
   );
+  
+has type => (
+  is       => 'rw',
+  isa      => 'Str',
+  required => 1
+);
 
 has [
   qw(
@@ -64,7 +69,7 @@ sub _prepare_data {
   # Because crams are interpreted like bam, they use the same type...
   # http://genome.ucsc.edu/goldenPath/help/cram.html
   my $type = $self->type;
-  if ($type eq 'cram') {
+  if ($type and $type eq 'cram') {
     $type = 'bam';
   }
 
