@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use Carp;
+$Carp::Verbose = 1;
 
 #use Test::More skip_all => "TODO";
 use Test::More qw(no_plan);
@@ -91,6 +92,7 @@ SKIP: {
 
   my $th_id       = 'VBRNAseq_SRP021068';
   my $hub_root    = 'http://www.ebi.ac.uk/~mbarba/testing/eg-trackhub/VBRNAseq_SRP021068';
+  my $server_root = 'http://www.ebi.ac.uk/~mbarba/testing/eg-trackhub';
   my $hub_url     = "$hub_root/hub.txt";
   my $genome_name = 'AminM1';
   my $insdc       = 'GCA_000349025.1';
@@ -111,10 +113,10 @@ SKIP: {
     );
 
     # Check that the registration worked
-    ok( my $reg = $registry->get_registered(),
+    ok( my @reg = $registry->get_registered(),
       "Can get list of registered hubs" );
 
-    ok( @$reg == 1,
+    ok( @reg == 1,
       "The list contains 1 registered hub" );
 
     # Get information
@@ -124,7 +126,7 @@ SKIP: {
     ok( $last_time =~ /^\d+$/, "Last update time is in a correct format");
 
     # Delete this specific track hub
-    ok( $registry->delete_track_hubs($th_id),
+    ok( $registry->delete_track_hub_ids($th_id),
       "Can delete a trackhub" );
 
     # Register the hub again with a different method
@@ -133,6 +135,7 @@ SKIP: {
       shortLabel  => 'Trackhub test1',
       longLabel   => 'Trackhub test1 long label',
       root_dir    => $hub_root,
+      server_dir  => $server_root,
     );
     my $genome = Bio::EnsEMBL::TrackHub::Hub::Genome->new(
       id    => $genome_name,
@@ -147,10 +150,11 @@ SKIP: {
       "Can delete all trackhubs" );
 
     # No more track hubs
-    ok( my @regend = $registry->get_registered(), "Check registered tracks after complete deletion");
+    my @regend = $registry->get_registered();
     ok( @regend == 0, "There are no more tracks" );
   }
 }
+
 
 __END__
 

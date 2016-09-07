@@ -100,7 +100,7 @@ sub prepare_trackhub {
   
   # Server: where the track hub files are publicly accessible
   # This should point to the same root dir via http/ftp
-  $track_hub->server( $data->{server} ) if $data->{server};
+  $track_hub->server_dir( $data->{server} ) if $data->{server};
 
   # Create a genome for the hub
   # The insdc part is only used when registering the hub

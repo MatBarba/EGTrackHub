@@ -68,7 +68,7 @@ has hub_dir => (
   isa => 'Str',
 );
 
-has server => (
+has server_dir => (
   is  => 'rw',
   isa => 'Str',
 );
@@ -120,9 +120,9 @@ sub update_hub_dir {
 sub _build_hub_url {
   my $self = shift;
   
-  die "Can't create hub url without server" if not $self->server;
+  croak "Can't create hub url without server_dir" if not $self->server_dir;
   
-  return $self->server . '/' . $self->id . '/' . $self->hub_file;
+  return $self->server_dir . '/' . $self->id . '/' . $self->hub_file;
 }
 
 ###############################################################################
@@ -336,7 +336,7 @@ An email address for contact about this hub.
 
 Root dir where the hub files will be created.
 
-=item I<server>
+=item I<server_dir>
 
 Root url where the hub should be accessed once registered.
 

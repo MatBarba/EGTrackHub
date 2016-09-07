@@ -233,13 +233,14 @@ sub register_track_hubs {
   my @hubs = @_;
 
   for my $hub (@hubs) {
-    print STDERR sprintf("Registering track hub %s with url %s (%s)\n", $hub->id, $hub->url, $self->is_public ? 'public' : 'hidden');
+    $logger->info(sprintf("Registering track hub %s with url %s (%s)\n", $hub->id, $hub->url, $self->is_public ? 'public' : 'hidden'));
     $self->register_track_hub_data(
       id           => $hub->id,
       url          => $hub->url,
       assembly_map => $hub->assembly_map
     );
   }
+  return 1;
 }
 
 # INSTANCE METHOD
@@ -268,15 +269,18 @@ sub hide_track_hubs {
 # DELETION METHODS
 
 # INSTANCE METHOD
-# Purpose   : unregister a track hub based on its id
-# Parameters: an id as string
-sub delete_track_hub_id {
+# Purpose   : unregister a list of track hubs based on their id
+# Parameters: an array of id as string
+sub delete_track_hub_ids {
   my $self = shift;
-  my ($hub_id) = @_;
+  my @hub_ids = @_;
   
-  $logger->info( "Deleting trackhub " . $hub_id );
-  my $url     = "$TRACKHUB_API/$hub_id";
-  $self->_request( $url, 'DELETE', 200 );
+  for my $hub_id (@hub_ids) {
+    $logger->info( "Deleting trackhub " . $hub_id );
+    my $url     = "$TRACKHUB_API/$hub_id";
+    $self->_request( $url, 'DELETE', 200 );
+  }
+  return 1;
 }
 
 # INSTANCE METHOD
@@ -287,11 +291,14 @@ sub delete_track_hubs {
   my @track_hubs = @_;
 
   for my $track_hub (@track_hubs) {
+    $logger->debug(Dumper $track_hub);
     croak("No track hub to delete") if (not $track_hub);
-    croak("No track hub id for deletion") if (not $track_hub->id);
+    my $id = $track_hub->{name};
+    croak("No track hub id for deletion") if (not defined $id);
 
-    $self->delete_track_hub_id($track_hub->id);
+    $self->delete_track_hub_ids($id);
   }
+  return 1;
 }
 
 # INSTANCE METHOD
@@ -301,8 +308,8 @@ sub delete_all_track_hubs {
   my $self = shift;
   
   $logger->info("Delete all track hubs in the registry for the user");
-  my $track_hubs = $self->get_registered;
-  $self->delete_track_hubs(@$track_hubs);
+  my @track_hubs = $self->get_registered;
+  $self->delete_track_hubs(@track_hubs);
 }
 
 ###############################################################################
@@ -341,21 +348,23 @@ sub get_registered_last_update {
   my $self = shift;
   my ($name) = @_;
   
-  my $trackhubs = $self->get_registered($name);
+  my @trackhubs = $self->get_registered($name);
   
   my $last_update = -1;
 
-  foreach my $hub (@$trackhubs) {
-    my $doc = $self->_request( $hub->{uri}, 'GET', 200 );
+  foreach my $hub (@trackhubs) {
+    foreach my $trackdb (@{ $hub->{trackdbs} }) {
+      my $doc = $self->_request( $trackdb->{uri}, 'GET', 200 );
 
-    if ( $doc->{updated} and $last_update < $doc->{updated} ) {
-      $last_update = $doc->{updated};
-    }
-    elsif ( $doc->{created} and $last_update < $doc->{created} ) {
-      $last_update = $doc->{created};
-    }
-    else {
-      croak "Trackdb does not have creation date in the Registry when trying to get the last update date of study $name\n";
+      if ( $doc->{updated} and $last_update < $doc->{updated} ) {
+        $last_update = $doc->{updated};
+      }
+      elsif ( $doc->{created} and $last_update < $doc->{created} ) {
+        $last_update = $doc->{created};
+      }
+      else {
+        croak "Trackdb does not have creation date in the Registry when trying to get the last update date of study $name\n";
+      }
     }
   }
 
@@ -494,15 +503,15 @@ Usage:
 
 =head2 DELETION
 
-=head3 B<delete_track_hub_id>
+=head3 B<delete_track_hub_ids>
 
-Unregister one track hub based on its name/id.
+Unregister a list of track hubs based on their name/id.
 
-Parameters: a string id.
+Parameters: an array of string = ids.
 
 Usage:
 
-  $self->delete_track_hub_id($name);
+  $self->delete_track_hub_ids($name);
 
 =head3 B<delete_track_hubs>
 
