@@ -293,7 +293,7 @@ sub delete_track_hubs {
   for my $track_hub (@track_hubs) {
     $logger->debug(Dumper $track_hub);
     croak("No track hub to delete") if (not $track_hub);
-    my $id = $track_hub->{name};
+    my $id = $track_hub->id;
     croak("No track hub id for deletion") if (not defined $id);
 
     $self->delete_track_hub_ids($id);
@@ -309,7 +309,8 @@ sub delete_all_track_hubs {
   
   $logger->info("Delete all track hubs in the registry for the user");
   my @track_hubs = $self->get_registered;
-  $self->delete_track_hubs(@track_hubs);
+  my @track_hub_ids = map { $_->{name} } @track_hubs;
+  $self->delete_track_hub_ids(@track_hub_ids);
 }
 
 ###############################################################################

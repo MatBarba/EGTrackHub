@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Readonly;
 use Carp;
+$Carp::Verbose = 1;
 use autodie qw(:all);
 use English qw( -no_match_vars );
 use Getopt::Long qw(:config no_ignore_case);
@@ -18,7 +19,7 @@ use Data::Dumper;
 
 # To not need to put the libs in PERL5LIB...
 use FindBin;
-use lib $FindBin::Bin . '/../modules';
+use lib $FindBin::Bin . '/../lib';
 #################################
 # You need all this to create a
 # track hub
@@ -76,10 +77,10 @@ if ($opt{create}) {
   
   # Registry actions: register, delete
   if ($opt{register}) {
-    $registry->register_track_hubs([$hub]);
+    $registry->register_track_hubs($hub);
   }
   elsif ($opt{delete}) {
-    $registry->delete_track_hubs($hub->id);
+    $registry->delete_track_hubs($hub);
   }
 }
 
@@ -113,6 +114,7 @@ sub prepare_trackhub {
   my $super_track = Bio::EnsEMBL::TrackHub::Hub::SuperTrack->new(
     track      => 'Supertrack',
     shortLabel => 'Signal density',
+    longLabel  => 'Signal density track',
     type       => $data->{type},
     show       => 1,
   );
