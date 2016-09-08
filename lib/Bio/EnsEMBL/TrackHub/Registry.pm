@@ -291,7 +291,6 @@ sub delete_track_hubs {
   my @track_hubs = @_;
 
   for my $track_hub (@track_hubs) {
-    $logger->debug(Dumper $track_hub);
     croak("No track hub to delete") if (not $track_hub);
     my $id = $track_hub->id;
     croak("No track hub id for deletion") if (not defined $id);
