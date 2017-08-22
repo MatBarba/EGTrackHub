@@ -13,7 +13,7 @@ use JSON;
 use HTTP::Request::Common qw/GET DELETE POST/;
 use LWP::UserAgent;
 
-my $SERVER       = 'https://beta.trackhubregistry.org';
+my $SERVER       = 'http://trackhubregistry.org';
 my $LOGIN_API    = $SERVER . '/api/login';
 my $LOGOUT_API   = $SERVER . '/api/logout';
 my $TRACKHUB_API = $SERVER . '/api/trackhub';
@@ -335,9 +335,9 @@ sub get_registered {
 sub get_registered_ids {
   my $self = shift;
   
-  my $trackhubs = $self->get_registered();
+  my @trackhubs = $self->get_registered();
   
-  my @ids = map { $_->{name} } @$trackhubs;
+  my @ids = map { $_->{name} } @trackhubs;
   return @ids;
 }
 

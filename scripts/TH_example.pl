@@ -175,7 +175,7 @@ sub usage {
     
     With both the server and the credentials set, this action will register
     the track hub in the Track Hub Registry. You can check it by login in on
-    the website https://beta.trackhubregistry.org/
+    the website https://trackhubregistry.org/
     
     
     DELETE
