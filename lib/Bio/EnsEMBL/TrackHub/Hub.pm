@@ -8,6 +8,7 @@ use Log::Log4perl qw(:easy);
 my $logger = get_logger();
 
 use Moose;
+use Moose::Util::TypeConstraints;
 use namespace::autoclean;
 use File::Spec;
 use File::Path qw(make_path);
@@ -17,9 +18,15 @@ use Bio::EnsEMBL::TrackHub::Hub::Genome;
 ###############################################################################
 # ATTRIBUTES
 # As defined in https://genome.ucsc.edu/goldenPath/help/hgTrackHubHelp.html
+
+subtype 'NonEmptyStr'
+=> as 'Str'
+=> where { $_ ne '' }
+=> message { 'The string must be a not empty' };
+
 has id => (
   is       => 'ro',
-  isa      => 'Str',
+  isa      => 'NonEmptyStr',
   required => 1,
 );
 
@@ -111,7 +118,7 @@ sub update_hub_dir {
   die "Can't update hub dir if the root dir is not defined"
     if not defined $self->_get_root_dir;
 
-  my $hub_dir = File::Spec->catfile( $self->_get_root_dir, $self->id );
+  my $hub_dir = File::Spec->catdir( $self->_get_root_dir, $self->id );
   $self->hub_dir($hub_dir);
 }
 

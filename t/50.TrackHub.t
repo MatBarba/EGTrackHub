@@ -41,6 +41,14 @@ throws_ok {
 'Moose::Exception::AttributeIsRequired',
   "Creating a Trackhub object without any parameters should fail";
 
+throws_ok {
+  my $th = Bio::EnsEMBL::TrackHub::Hub->new(
+    (%ex, id => ""),
+  );
+}
+'Moose::Exception::ValidationFailedForInlineTypeConstraint',
+  "Creating a Trackhub object with an empty id should fail";
+
 ok(
   my $th = Bio::EnsEMBL::TrackHub::Hub->new(%ex),
   "Creating a Trackhub object with all required fields"
