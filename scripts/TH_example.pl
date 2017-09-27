@@ -46,6 +46,7 @@ my %example = (
   url         => 'http://ftp.sra.ebi.ac.uk/vol1/ERZ306/ERZ306020/SRR580951.cram',
   type        => 'cram',  # can be 'cram', 'bam', 'bigWig'...
   root_dir    => './Track_Hubs',
+  data_type   => 'transcriptomics'
 );
 
 # Get command line args
@@ -91,9 +92,10 @@ sub prepare_trackhub {
 
   # Create an empty track hub with just an id (you can add other fields though)
   my $track_hub = Bio::EnsEMBL::TrackHub::Hub->new(
-    id      => $data->{id},
+    id          => $data->{id},
     shortLabel  => "Short label for $data->{id}",
     longLabel   => "Long label for $data->{id}",
+    data_type   => $data->{data_type},
   );
   
   # Root dir: where all the track_hub directories are created on your system

@@ -93,6 +93,13 @@ has genomes => (
   default => sub { {} },
 );
 
+# Data_type, for the registry
+has data_type => (
+  is      => 'rw',
+  isa     => enum([ qw[ transcriptomics genomics proteomics epigenomics ] ]),
+  default => 'transcriptomics',
+);
+
 ###############################################################################
 # ATTRIBUTES BUILDERS
 

@@ -183,6 +183,7 @@ sub register_track_hub_data {
   my $track_hub_id     = $pars{id};
   my $hub_url          = $pars{url};
   my $assembly_mapping = $pars{assembly_map};
+  my $data_type        = $pars{data_type} // 'transcriptomics';
 
   croak "No track hub id provided" if not defined $track_hub_id;
   croak "No hub.txt url provided"  if not defined $hub_url;
@@ -193,7 +194,7 @@ sub register_track_hub_data {
 
   my $trackhub_content = {
     url  => $hub_url,
-    type => 'transcriptomics',
+    type => $data_type,
   };
   $trackhub_content->{assemblies} = \%assemblies if %assemblies;
   $trackhub_content->{public}     = 0            if not $self->is_public;
@@ -237,7 +238,8 @@ sub register_track_hubs {
     $self->register_track_hub_data(
       id           => $hub->id,
       url          => $hub->url,
-      assembly_map => $hub->assembly_map
+      assembly_map => $hub->assembly_map,
+      data_type    => $hub->data_type
     );
   }
   return 1;

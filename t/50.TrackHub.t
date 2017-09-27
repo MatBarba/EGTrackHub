@@ -25,6 +25,7 @@ my %ex = (
   longLabel      => 'Trackhub number 1',
   descriptionUrl => 'http://example.org',
   email          => 'john@smith.org',
+  data_type      => 'transcriptomics',
 );
 my $expected_hub = "hub $ex{id}
 shortLabel $ex{shortLabel}
@@ -48,6 +49,23 @@ throws_ok {
 }
 'Moose::Exception::ValidationFailedForInlineTypeConstraint',
   "Creating a Trackhub object with an empty id should fail";
+
+throws_ok {
+  my $th = Bio::EnsEMBL::TrackHub::Hub->new(
+    (%ex, data_type => "undefined_type"),
+  );
+}
+'Moose::Exception::ValidationFailedForInlineTypeConstraint',
+  "Creating a Trackhub object with an undefined data_type should fail";
+
+{
+  ok(
+    my $th = Bio::EnsEMBL::TrackHub::Hub->new(
+      (%ex, data_type => "genomics"),
+    ),
+    "Creating a Trackhub object with a genomics data_type"
+  );
+}
 
 ok(
   my $th = Bio::EnsEMBL::TrackHub::Hub->new(%ex),
